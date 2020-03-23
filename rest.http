@@ -1,0 +1,67 @@
+@server = http://localhost:3000
+
+### Transfer (post) sync
+POST {{server}}/operation/transfer?sync=true
+content-type: application/json
+
+{
+    "fromAccountId": "1",
+    "toAccountId": "2",
+    "assetId": "eth",
+    "value": "0.2",
+    "memo": "testing transfer API"
+}
+
+### Transfer (post) async
+POST {{server}}/operation/transfer
+content-type: application/json
+
+{
+    "fromAccountId": "1",
+    "toAccountId": "2",
+    "assetId": "btc",
+    "value": "0.2",
+    "memo": "testing transfer API"
+}
+
+### Operation (get)
+GET {{server}}/operation?id=46
+
+### Operation (post)
+POST {{server}}/operation
+content-type: application/json
+
+{
+    "operationType": "TRANSFER",
+    "memo": "testing transfer API",
+    "entries": [
+        {
+            "accountId": "1",
+            "assetId": "btc",
+            "value": "-0.2"
+        },
+        {
+            "accountId": "2",
+            "assetId": "btc",
+            "value": "0.2"
+        }
+    ]    
+}
+
+### Account (get)
+GET {{server}}/account?id=1
+
+### Account (post)
+POST {{server}}/account
+content-type: application/json
+
+{
+    "name": "claire",
+    "metadata": {} 
+}
+
+### Account (get) all balances
+GET {{server}}/account/balances?id=1
+
+### Account (get)
+GET {{server}}/account/balances?id=1&assetId=btc

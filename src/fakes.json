@@ -1,0 +1,55 @@
+{
+    "operations": [
+        {
+            "id": "1",
+            "operationType": "TRANSFER",
+            "memo": "transferring 1BTC to alice",
+            "entries": [
+                {
+                    "accountId": "1",
+                    "assetId": "btc",
+                    "value": "-1"
+                },
+                {
+                    "accountId": "2",
+                    "assetId": "btc",
+                    "value": "1"
+                }               
+            ],
+            "status": "APPLIED",
+            "createdAt": 1532438528
+        }
+    ],
+    "entries": [
+        {
+            "id": "1",
+            "operationId": "1",
+            "accountId": "1",
+            "assetId": "btc",
+            "value": "-1",
+            "createdAt": 1532438528
+        },
+        {
+            "id": "2",
+            "operationId": "1",
+            "accountId": "2",
+            "assetId": "btc",
+            "value": "1",
+            "createdAt": 1532438528
+        }
+    ],
+    "accounts": [
+        {
+            "id": "1",
+            "name": "bob",
+            "metadata": {},
+            "createdAt": 1532438528
+        },
+        {
+            "id": "2",
+            "name": "alice",
+            "metadata": {},
+            "createdAt": 1532438528
+        }
+    ]
+}
