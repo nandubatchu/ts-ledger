@@ -20,7 +20,11 @@ class LedgerSystem {
     // singleton class
     constructor () {
         this.db = new DB();
-        this.postingQueue = new FIFOQueue();
+        this.postingQueue = new FIFOQueue(this.db.operations.map((operation) => {
+            return async () => {
+                await this.postOperationEntries(operation.id, operation.entries)
+            }
+        }));
     }
     getOperation(id) {
         return this.db.get(Entities.OPERATIONS, id);
@@ -77,7 +81,9 @@ class LedgerSystem {
     }
     getAccount(id) {
         const account = this.db.get(Entities.ACCOUNTS, id);
-        account.balances = this.getAccountBalances(id);
+        if (account) {
+            account.balances = this.getAccountBalances(id);
+        }
         return account;
     }
     getAccountBalances(id) {

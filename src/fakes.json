@@ -16,28 +16,11 @@
                     "value": "1"
                 }               
             ],
-            "status": "APPLIED",
+            "status": "INIT",
             "createdAt": 1532438528
         }
     ],
-    "entries": [
-        {
-            "id": "1",
-            "operationId": "1",
-            "accountId": "1",
-            "assetId": "btc",
-            "value": "-1",
-            "createdAt": 1532438528
-        },
-        {
-            "id": "2",
-            "operationId": "1",
-            "accountId": "2",
-            "assetId": "btc",
-            "value": "1",
-            "createdAt": 1532438528
-        }
-    ],
+    "entries": [],
     "accounts": [
         {
             "id": "1",

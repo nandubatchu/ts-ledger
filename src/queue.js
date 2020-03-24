@@ -1,7 +1,7 @@
 const sleep = require('./utils').sleep;
 class FIFOQueue {
-    constructor() {
-        this.taskQueue = [];
+    constructor(pendingTasks) {
+        this.taskQueue = pendingTasks;
         this.clearQueue();
     }
     async clearQueue() {
