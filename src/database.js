@@ -1,6 +1,15 @@
 const fakes = require("./fakes.json");
-class InMemoryData {
-    constructor() {
+class Data {
+    constructor(config) {}
+    insert() {}
+    insertMany() {}
+    get() {}
+    getAll() {}
+    update() {}
+}
+class InMemoryData extends Data {
+    constructor(config) {
+        super(config);
         this.operations = fakes.operations;
         this.entries = fakes.entries;
         this.accounts = fakes.accounts;
@@ -25,14 +34,14 @@ class InMemoryData {
         return ids
     }
     get(tableName, id) {
+        return this[tableName].find(e => e.id === id);
+    }
+    getAll(tableName, id) {
         if (id) {
-            return this[tableName].find(e => e.id === id);
+            return this[tableName].filter(e => e.accountId === id);
         } else {
             return this[tableName];
         }
-    }
-    getAll(tableName, id) {
-        return this[tableName].filter(e => e.accountId === id);
     }
     update(tableName, id, data) {
         data = Object.assign(data, {updatedAt: new Date().getTime()})
@@ -42,11 +51,12 @@ class InMemoryData {
     }
 }
 
-class PostgresData {
+class SQLiteData extends Data {}
 
-}
+class PostgresData extends Data {}
 
 module.exports = {
     InMemoryData,
+    SQLiteData,
     PostgresData
 }

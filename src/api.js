@@ -1,10 +1,11 @@
 const express = require("express")
 const bodyParser = require('body-parser')
 const app = express();
+const CONFIG = require("./config.json")[process.env.NODE_ENV || "local"];
 const LedgerSystem = require("./ledger");
 app.use(bodyParser.json());
 
-const ledgerSystem = new LedgerSystem();  // Singleton Service
+const ledgerSystem = new LedgerSystem(CONFIG.DATABASE_CONFIG[CONFIG.DATABASE]);  // Singleton Service
 
 const operationRoutes = express.Router();
 const accountRoutes = express.Router();
@@ -106,6 +107,6 @@ accountRoutes.get('/balances', (req, res) => {
 app.use('/operation', operationRoutes);
 app.use('/account', accountRoutes);
 
-const port = process.env.PORT || 3000
+const port = CONFIG.API_PORT || 3000;
 app.listen(port, () => console.log(`API server istening on port ${port}!`))
 module.exports = app    // for testing purpose

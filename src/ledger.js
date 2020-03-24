@@ -1,6 +1,6 @@
 // LedgerSystem class
 const BigNumber = require('bignumber.js');
-const DB = require("./database").InMemoryData;
+const Data = require("./database");
 const FIFOQueue = require("./queue");
 const sleep = require('./utils').sleep;
 const groupBy = require('./utils').groupBy;
@@ -20,9 +20,9 @@ const Entities = {
 }
 class LedgerSystem {
     // singleton class
-    constructor () {
-        this.db = new DB();
-        this.postingQueue = new FIFOQueue(this.db.operations.filter(operation => [OperationStatus.INIT, OperationStatus.PROCESSING].includes(operation.status)).map((operation) => {
+    constructor (databaseConfig) {
+        this.db = new Data[databaseConfig.class](databaseConfig);
+        this.postingQueue = new FIFOQueue(this.db.getAll(Entities.OPERATIONS).filter(operation => [OperationStatus.INIT, OperationStatus.PROCESSING].includes(operation.status)).map((operation) => {
             return async () => {
                 await this.postOperationEntries(operation.id, operation.entries)
             }

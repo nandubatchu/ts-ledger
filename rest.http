@@ -63,6 +63,15 @@ content-type: application/json
     "metadata": {} 
 }
 
+### Account (post)
+POST {{server}}/account
+content-type: application/json
+
+{
+    "name": "coinswitch_cash",
+    "metadata": {} 
+}
+
 ### Account (get) all balances
 GET {{server}}/account/balances?id=1
 

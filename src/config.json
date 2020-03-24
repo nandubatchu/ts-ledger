@@ -1,0 +1,32 @@
+{
+    "local": {
+        "API_PORT": 3000,
+        "DATABASE": "memory",
+        "DATABASE_CONFIG": {
+            "memory": {
+                "class": "InMemoryData"
+            },
+            "sqlite": {
+                "class": "SQLiteData"
+            }
+        }
+    },
+    "dev": {
+        "API_PORT": 3000,
+        "DATABASE": "sqlite",
+        "DATABASE_CONFIG": {
+            "sqlite": {
+                "class": "SQLiteData"
+            }
+        }
+    },
+    "prod": {
+        "API_PORT": 3000,
+        "DATABASE": "sqlite",
+        "DATABASE_CONFIG": {
+            "sqlite": {
+                "class": "SQLiteData"
+            }
+        }
+    }
+}
