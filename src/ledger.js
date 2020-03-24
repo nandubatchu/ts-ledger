@@ -20,7 +20,7 @@ class LedgerSystem {
     // singleton class
     constructor () {
         this.db = new DB();
-        this.postingQueue = new FIFOQueue(this.db.operations.map((operation) => {
+        this.postingQueue = new FIFOQueue(this.db.operations.filter(operation => [OperationStatus.INIT, OperationStatus.PROCESSING].includes(operation.status)).map((operation) => {
             return async () => {
                 await this.postOperationEntries(operation.id, operation.entries)
             }

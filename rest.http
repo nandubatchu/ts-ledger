@@ -25,7 +25,7 @@ content-type: application/json
 }
 
 ### Operation (get)
-GET {{server}}/operation?id=46
+GET {{server}}/operation?id=1
 
 ### Operation (post)
 POST {{server}}/operation
