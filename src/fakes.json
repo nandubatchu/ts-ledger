@@ -25,6 +25,9 @@
         {
             "id": "1",
             "name": "bob",
+            "restrictions": {
+                "minimumCreditBalance": "0"
+            },
             "metadata": {},
             "createdAt": 1532438528
         },
@@ -32,6 +35,9 @@
             "id": "2",
             "name": "alice",
             "metadata": {},
+            "restrictions": {
+                "minimumCreditBalance": "0"
+            },
             "createdAt": 1532438528
         }
     ]

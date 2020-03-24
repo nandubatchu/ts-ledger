@@ -3,6 +3,7 @@ const BigNumber = require('bignumber.js');
 const DB = require("./database").InMemoryData;
 const FIFOQueue = require("./queue");
 const sleep = require('./utils').sleep;
+const groupBy = require('./utils').groupBy;
 const OperationTypes = {
     TRANSFER: "TRANSFER"
 }
@@ -10,6 +11,7 @@ const OperationStatus = {
     INIT: "INIT",
     PROCESSING: "PROCESSING",
     APPLIED: "APPLIED",
+    REJECTED: "REJECTED"
 }
 const Entities = {
     OPERATIONS: "operations",
@@ -26,12 +28,42 @@ class LedgerSystem {
             }
         }));
     }
+    validateEntries(entries) {
+        const accountGroupedEntries = groupBy(entries, "accountId");
+        Object.keys(accountGroupedEntries).forEach((accountId) => {
+            const account = this.db.get(Entities.ACCOUNTS, accountId);
+            if (account && account.restrictions) {
+                const accountEntries = accountGroupedEntries[accountId];
+                const accountBalances = this.getAccountBalances(accountId);
+                const assetGroupedEntries = groupBy(accountEntries, "assetId");
+                Object.keys(assetGroupedEntries).forEach((assetId) => {
+                    const assetBalance = accountBalances[assetId] || "0";
+                    let newEntriesSum
+                    if (assetGroupedEntries[assetId].length > 1) {
+                        newEntriesSum = assetGroupedEntries[assetId].reduce((r, i) => (BigNumber(r.value || r).plus(BigNumber(i.value))).toString());
+                    } else {
+                        newEntriesSum = assetGroupedEntries[assetId][0].value;
+                    }
+                    if (account.restrictions && account.restrictions.minimumCreditBalance && (BigNumber(newEntriesSum).plus(BigNumber(assetBalance))).isLessThan(BigNumber(account.restrictions.minimumCreditBalance))) {
+                        throw new Error(`Minimum credit balance required on account ${accountId} is ${account.restrictions.minimumCreditBalance} ${assetId} | Current account balance: ${assetBalance} ${assetId}`);
+                    }
+                })
+            }
+        })
+    }
     getOperation(id) {
         return this.db.get(Entities.OPERATIONS, id);
     }
     async postOperationEntries(operationId, entries) {
         await sleep(2000);   // To test the background queue
         this.db.update(Entities.OPERATIONS, operationId, {status: OperationStatus.PROCESSING})
+        // validate the entries using balance restrictions
+        try {
+            this.validateEntries(entries);
+        } catch (error) {
+            this.db.update(Entities.OPERATIONS, operationId, {status: OperationStatus.REJECTED, rejectionReason: error.message});
+            return;
+        }
         this.db.insertMany(Entities.ENTRIES, entries);
         this.db.update(Entities.OPERATIONS, operationId, {status: OperationStatus.APPLIED})
     }

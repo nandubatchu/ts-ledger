@@ -1,7 +1,7 @@
 @server = http://localhost:3000
 
 ### Transfer (post) sync
-POST {{server}}/operation/transfer?sync=true
+POST {{server}}/operation/transfer-sync
 content-type: application/json
 
 {
@@ -57,6 +57,9 @@ content-type: application/json
 
 {
     "name": "claire",
+    "restrictions": {
+        "minimumCreditBalance": "0"
+    },
     "metadata": {} 
 }
 

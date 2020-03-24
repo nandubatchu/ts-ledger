@@ -10,13 +10,18 @@ const operationRoutes = express.Router();
 const accountRoutes = express.Router();
 
 // Operations
+operationRoutes.post('/transfer-sync', async (req, res) => {
+    const operationId = await ledgerSystem.postTransferOperation(req.body, true);
+    const operation = ledgerSystem.getOperation(operationId);
+    res.json({
+        success: true, 
+        operation: operation
+    })
+    return;
+})
+
 operationRoutes.post('/transfer', async (req, res) => {
-    let operationId;
-    if (req.query.sync) {
-        operationId = await ledgerSystem.postTransferOperation(req.body, true);
-    } else {
-        operationId = ledgerSystem.postTransferOperation(req.body);
-    }
+    const operationId = ledgerSystem.postTransferOperation(req.body);
     res.json({
         success: true, 
         id: operationId
