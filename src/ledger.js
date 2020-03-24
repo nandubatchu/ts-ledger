@@ -122,8 +122,7 @@ class LedgerSystem {
         const accountEntries = this.db.getAll(Entities.ENTRIES, id);
         let accountBalances = {};
         for (const entry of accountEntries) {
-            const oldBalance = accountBalances[entry.assetId] || "0"
-            accountBalances[entry.assetId] = BigNumber(oldBalance).plus(BigNumber(entry.value)).toString()
+            accountBalances[entry.assetId] = BigNumber(accountBalances[entry.assetId] || "0").plus(BigNumber(entry.value)).toString()
         }
         return accountBalances;
     }
