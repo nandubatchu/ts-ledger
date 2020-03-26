@@ -1,11 +1,10 @@
 const fakes = require("./fakes.json");
 class Data {
-    constructor(config) {}
-    insert() {}
-    insertMany() {}
-    get() {}
-    getAll() {}
-    update() {}
+    insert() {return}
+    insertMany() {return}
+    get() {return}
+    getAll() {return}
+    update() {return}
 }
 class InMemoryData extends Data {
     constructor(config) {
