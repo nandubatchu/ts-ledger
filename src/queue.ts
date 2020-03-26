@@ -1,7 +1,8 @@
-const sleep = require('./utils').sleep;
-class FIFOQueue {
-    constructor(pendingTasks) {
-        this.taskQueue = pendingTasks;
+import { sleep } from "./utils";
+export class FIFOQueue {
+    private taskQueue: (() => Promise<void>)[];
+    constructor(pendingTasks?: (() => Promise<void>)[]) {
+        this.taskQueue = pendingTasks || [];
         this.clearQueue();
     }
     async clearQueue() {
@@ -12,8 +13,7 @@ class FIFOQueue {
         await sleep(1);
         this.clearQueue();
     }
-    enqueueTask(task) {
+    enqueueTask(task: () => Promise<void>) {
         this.taskQueue.push(task);
     }
 }
-module.exports = FIFOQueue;

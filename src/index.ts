@@ -2,48 +2,74 @@ import express from "express";
 import jayson from "jayson";
 import dotenv from "dotenv";
 import { logger } from "./logger";
-import { ITransferRequest, IOperationRequest, IOperation, IAccountRequest, IAccount, IAccountBalances } from "./interfaces";
 import configurations from "./config.json";
-import LedgerSystem from "./ledger";
+import { LedgerSystem } from "./ledger";
+import { IOperation, IAccount, OperationType } from "./base-data-connector";
 
 dotenv.config();
 const environment: string = process.env.NODE_ENV || "local";
 const config = (configurations as {[environment: string]: any})[environment];
-const app = express();
+export const app = express(); // exported for testing purpose
 
 const ledgerSystem = new LedgerSystem(config.DATABASE_CONFIG[config.DATABASE]);
+export interface IPostingEntryRequest {
+    accountId: string,
+    assetId: string,
+    value: string,
+}
+export interface IOperationRequest {
+    type: OperationType,
+    memo: string,
+    entries: IPostingEntryRequest[],
+}
+export interface ITransferRequest {
+    fromAccountId: string,
+    toAccountId: string,
+    assetId: string,
+    value: string,
+    memo: string,
+}
+export interface IAccountRequest {
+    name: string,
+    metadata?: {},
+    restrictions?: {
+        minBalance?: string;
+    }
+}
+export interface IAccountBalances {
+    [assetId: string]: string,
+}
 const rpcMethods  = {
-    getOperation: (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
+    getOperation: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
         const [operationId] = args;
-        const operation = ledgerSystem.getOperation(operationId);
+        const operation = await ledgerSystem.getOperation(operationId);
         callback(null, operation);
     },
     postOperation: async (args: [IOperationRequest, boolean|undefined], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
         const [operationRequest, sync] = args;
         const operationId = await ledgerSystem.postOperation(operationRequest, sync);
-        const operation = ledgerSystem.getOperation(operationId);
+        const operation = await ledgerSystem.getOperation(operationId);
         callback(null, operation);
     },
     postTransfer: async (args: [ITransferRequest, boolean|undefined], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
         const [transferRequest, sync] = args;
         const operationId = await ledgerSystem.postTransferOperation(transferRequest, sync);
-        const operation = ledgerSystem.getOperation(operationId);
+        const operation = await ledgerSystem.getOperation(operationId);
         callback(null, operation);
     },
-    createAccount: (args: [IAccountRequest], callback: (error?: jayson.JSONRPCError | null, result?: IAccount) => void) => {
+    createAccount: async (args: [IAccountRequest], callback: (error?: jayson.JSONRPCError | null, result?: IAccount) => void) => {
         const [accountRequest] = args;
-        const accountId = ledgerSystem.createAccount(accountRequest);
-        const account = ledgerSystem.getAccount(accountId);
+        const account = await ledgerSystem.createAccount(accountRequest);
         callback(null, account);
     },
-    getAccount: (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IAccount) => void) => {
+    getAccount: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IAccount) => void) => {
         const [accountId] = args;
-        const account = ledgerSystem.getAccount(accountId);
+        const account = await ledgerSystem.getAccount(accountId);
         callback(null, account);
     },
-    getBalances: (args: [string, string], callback: (error?: jayson.JSONRPCError | null, result?: IAccountBalances) => void) => {
+    getBalances: async (args: [string, string], callback: (error?: jayson.JSONRPCError | null, result?: IAccountBalances) => void) => {
         const [accountId, assetId] = args;
-        const accountBalances = ledgerSystem.getAccountBalances(accountId) as IAccountBalances;
+        const accountBalances = await ledgerSystem.getAccountBalances(accountId);
         if (assetId) {
             // TODO: need to move this logic to the database layer
             const balances: IAccountBalances = {}
@@ -62,4 +88,4 @@ const port = config.API_PORT || 3000;
 app.listen(port, () => {
     logger.info(`API server istening on port ${port}!`)
 })
-module.exports = app    // for testing purpose
+

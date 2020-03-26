@@ -1,13 +1,13 @@
-const server = require("./api");
-const chai = require("chai");
-const chaiHttp = require("chai-http");
+import { app } from "./index";
+import * as chai from "chai";
+import chaiHttp from "chai-http";
 const should = chai.should();
 
 chai.use(chaiHttp);
 
 describe("API Testing", () => {
     it("accounts", (done) => {
-        chai.request(server)
+        chai.request(app)
             .get("/account")
             .query({id: "1"})
             .end((err, res) => {

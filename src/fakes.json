@@ -2,7 +2,7 @@
     "operations": [
         {
             "id": "1",
-            "operationType": "TRANSFER",
+            "type": "TRANSFER",
             "memo": "transferring 1BTC to alice",
             "entries": [
                 {
@@ -17,7 +17,8 @@
                 }               
             ],
             "status": "INIT",
-            "createdAt": 1532438528
+            "createdAt": 1532438528,
+            "updatedAt": 1532438528
         }
     ],
     "entries": [],
@@ -26,7 +27,7 @@
             "id": "1",
             "name": "bob",
             "restrictions": {
-                "minimumBalance": "0"
+                "minBalance": "0"
             },
             "metadata": {},
             "createdAt": 1532438528
@@ -36,7 +37,7 @@
             "name": "alice",
             "metadata": {},
             "restrictions": {
-                "minimumBalance": "0"
+                "minBalance": "0"
             },
             "createdAt": 1532438528
         }

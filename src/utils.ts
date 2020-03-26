@@ -1,7 +1,7 @@
-const sleep = async (ms) => {
-    return await new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = async (ms: number) => {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
-const groupBy = (items, key) => items.reduce(
+export const groupBy = (items: any[], key: string|number) => items.reduce(
     (result, item) => ({
         ...result,
         [item[key]]: [

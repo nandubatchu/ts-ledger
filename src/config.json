@@ -4,7 +4,7 @@
         "DATABASE": "memory",
         "DATABASE_CONFIG": {
             "memory": {
-                "class": "InMemoryData"
+                "class": "InMemoryDataConnector"
             },
             "sqlite": {
                 "class": "SQLiteData"
