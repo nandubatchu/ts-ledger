@@ -1,79 +1,91 @@
 @server = http://localhost:3000
 
-### Transfer (post) sync
-POST {{server}}/operation/transfer-sync
+### getOperation
+POST {{server}}
 content-type: application/json
 
 {
-    "fromAccountId": "1",
-    "toAccountId": "2",
-    "assetId": "eth",
-    "value": "0.2",
-    "memo": "testing transfer API"
+    "jsonrpc": "2.0",
+    "method": "getOperation",
+    "params": ["1"],
+    "id": 1
 }
 
-### Transfer (post) async
-POST {{server}}/operation/transfer
+### postOperation
+POST {{server}}
 content-type: application/json
 
 {
-    "fromAccountId": "1",
-    "toAccountId": "2",
-    "assetId": "btc",
-    "value": "0.2",
-    "memo": "testing transfer API"
+    "jsonrpc": "2.0",
+    "method": "postOperation",
+    "params": [{
+        "operationType": "TRANSFER",
+        "memo": "testing transfer API",
+        "entries": [
+            {
+                "accountId": "1",
+                "assetId": "btc",
+                "value": "-0.2"
+            },
+            {
+                "accountId": "2",
+                "assetId": "btc",
+                "value": "0.2"
+            }
+        ]    
+    }, false],
+    "id": 1
 }
 
-### Operation (get)
-GET {{server}}/operation?id=1
-
-### Operation (post)
-POST {{server}}/operation
+### postTransfer
+POST {{server}}
 content-type: application/json
 
 {
-    "operationType": "TRANSFER",
-    "memo": "testing transfer API",
-    "entries": [
-        {
-            "accountId": "1",
-            "assetId": "btc",
-            "value": "-0.2"
-        },
-        {
-            "accountId": "2",
-            "assetId": "btc",
-            "value": "0.2"
-        }
-    ]    
+    "jsonrpc": "2.0",
+    "method": "postTransfer",
+    "params": [{
+        "fromAccountId": "3",
+        "toAccountId": "1",
+        "assetId": "btc",
+        "value": "0.2",
+        "memo": "testing transfer API"
+    }, true],
+    "id": 1
 }
 
-### Account (get)
-GET {{server}}/account?id=1
-
-### Account (post)
-POST {{server}}/account
+### getAccount
+POST {{server}}
 content-type: application/json
 
 {
-    "name": "claire",
-    "restrictions": {
-        "minimumCreditBalance": "0"
-    },
-    "metadata": {} 
+    "jsonrpc": "2.0",
+    "method": "getAccount",
+    "params": ["1"],
+    "id": 1
 }
 
-### Account (post)
-POST {{server}}/account
+### getBalances
+POST {{server}}
 content-type: application/json
 
 {
-    "name": "coinswitch_cash",
-    "metadata": {} 
+    "jsonrpc": "2.0",
+    "method": "getBalances",
+    "params": ["1", "btc"],
+    "id": 1
 }
 
-### Account (get) all balances
-GET {{server}}/account/balances?id=1
+### createAccount
+POST {{server}}
+content-type: application/json
 
-### Account (get)
-GET {{server}}/account/balances?id=1&assetId=btc
+{
+    "jsonrpc": "2.0",
+    "method": "createAccount",
+    "params": [{
+        "name": "coinswitch_cash",
+        "metadata": {} 
+    }],
+    "id": 1
+}

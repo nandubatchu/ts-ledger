@@ -18,6 +18,7 @@ const Entities = {
     ACCOUNTS: "accounts",
     ENTRIES: "entries"
 }
+
 class LedgerSystem {
     // singleton class
     constructor (databaseConfig) {
@@ -44,8 +45,8 @@ class LedgerSystem {
                     } else {
                         newEntriesSum = assetGroupedEntries[assetId][0].value;
                     }
-                    if (account.restrictions && account.restrictions.minimumCreditBalance && (BigNumber(newEntriesSum).plus(BigNumber(assetBalance))).isLessThan(BigNumber(account.restrictions.minimumCreditBalance))) {
-                        throw new Error(`Minimum credit balance required on account ${accountId} is ${account.restrictions.minimumCreditBalance} ${assetId} | Current account balance: ${assetBalance} ${assetId}`);
+                    if (account.restrictions && account.restrictions.minimumBalance && (BigNumber(newEntriesSum).plus(BigNumber(assetBalance))).isLessThan(BigNumber(account.restrictions.minimumBalance))) {
+                        throw new Error(`Minimum credit balance required on account ${accountId} is ${account.restrictions.minimumBalance} ${assetId} | Current account balance: ${assetBalance} ${assetId}`);
                     }
                 })
             }
@@ -67,25 +68,22 @@ class LedgerSystem {
         this.db.insertMany(Entities.ENTRIES, entries);
         this.db.update(Entities.OPERATIONS, operationId, {status: OperationStatus.APPLIED})
     }
-    postOperation(operation) {
-        operation.status = OperationStatus.INIT;
-        const operationId = this.db.insert(Entities.OPERATIONS, operation);
-        this.postingQueue.enqueueTask(async () => {
-            await this.postOperationEntries(operationId, operation.entries);
-        });
-        return operationId;
-    }
-    async postOperationAsync(operation) {
+    async postOperation(operation, sync) {
         return new Promise((resolve, reject) => {
             operation.status = OperationStatus.INIT;
             const operationId = this.db.insert(Entities.OPERATIONS, operation);
             this.postingQueue.enqueueTask(async () => {
                 await this.postOperationEntries(operationId, operation.entries);
-                resolve(operationId);
+                if (sync) {
+                    resolve(operationId);
+                }
             });
+            if (!sync) {
+                resolve(operationId);
+            }
         })
     }
-    postTransferOperation(transferData, async) {
+    async postTransferOperation(transferData, sync) {
         const operation = {
             operationType: OperationTypes.TRANSFER,
             memo: transferData.memo,
@@ -102,11 +100,7 @@ class LedgerSystem {
                 }
             ]
         }
-        if (async) {
-            return this.postOperationAsync(operation);
-        } else {
-            return this.postOperation(operation);
-        }
+        return this.postOperation(operation, sync);
     }
     createAccount(accountInfo) {
         return this.db.insert(Entities.ACCOUNTS, accountInfo);

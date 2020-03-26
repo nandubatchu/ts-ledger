@@ -12,6 +12,7 @@
     "start": "node .",
     "dev:start": "npm run start",
     "dev": "nodemon --watch src -e ts,js --exec npm run dev:start",
+    "debug": "nodemon --debug --watch src -e ts,js --exec npm run dev:start",
     "test": "mocha src/tests.js"
   },
   "keywords": [],
@@ -21,7 +22,9 @@
     "bignumber.js": "^9.0.0",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "jayson": "^3.2.0",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
     "@types/dotenv": "^8.2.0",

@@ -35,9 +35,9 @@ class InMemoryData extends Data {
     get(tableName, id) {
         return this[tableName].find(e => e.id === id);
     }
-    getAll(tableName, id) {
-        if (id) {
-            return this[tableName].filter(e => e.accountId === id);
+    getAll(tableName, accountId) {
+        if (accountId) {
+            return this[tableName].filter(e => e.accountId === accountId);
         } else {
             return this[tableName];
         }
