@@ -40,6 +40,7 @@ export class LedgerSystem {
         this.initPromise = this.init();
     }
     private async init() {
+        // initialisation of the postingQueue
         const pendingTaskQueue = await this.getPendingOperations()
             .then((pendingOperations) => pendingOperations.map((operation) => this.getOperationTask(operation)))
         this.postingQueue = new FIFOQueue(pendingTaskQueue);
@@ -84,6 +85,7 @@ export class LedgerSystem {
     private async postOperationEntries(operationId: string, entriesRequests: IPostingEntryRequest[]) {
         await sleep(2000);   // To test the background queue
         await this.dataConnector.updateOperationStatus(operationId, OperationStatus.PROCESSING);
+        // TODO: validate the operation
         // validate the entries using balance restrictions
         try {
             await this.validateEntries(entriesRequests);
