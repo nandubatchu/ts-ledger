@@ -23,12 +23,12 @@ content-type: application/json
         "memo": "testing transfer API",
         "entries": [
             {
-                "accountId": "1",
+                "bookId": "1",
                 "assetId": "btc",
                 "value": "-0.2"
             },
             {
-                "accountId": "2",
+                "bookId": "2",
                 "assetId": "btc",
                 "value": "0.2"
             }
@@ -45,8 +45,8 @@ content-type: application/json
     "jsonrpc": "2.0",
     "method": "postTransfer",
     "params": [{
-        "fromAccountId": "3",
-        "toAccountId": "1",
+        "fromBookId": "3",
+        "toBookId": "1",
         "assetId": "btc",
         "value": "0.2",
         "memo": "testing transfer API"
@@ -54,13 +54,13 @@ content-type: application/json
     "id": 1
 }
 
-### getAccount
+### getBook
 POST {{server}}
 content-type: application/json
 
 {
     "jsonrpc": "2.0",
-    "method": "getAccount",
+    "method": "getBook",
     "params": ["1"],
     "id": 1
 }
@@ -76,13 +76,13 @@ content-type: application/json
     "id": 1
 }
 
-### createAccount
+### createBook
 POST {{server}}
 content-type: application/json
 
 {
     "jsonrpc": "2.0",
-    "method": "createAccount",
+    "method": "createBook",
     "params": [{
         "name": "coinswitch_cash",
         "metadata": {} 

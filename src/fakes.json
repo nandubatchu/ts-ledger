@@ -6,12 +6,12 @@
             "memo": "transferring 1BTC to alice",
             "entries": [
                 {
-                    "accountId": "1",
+                    "bookId": "1",
                     "assetId": "btc",
                     "value": "-1"
                 },
                 {
-                    "accountId": "2",
+                    "bookId": "2",
                     "assetId": "btc",
                     "value": "1"
                 }               
@@ -22,7 +22,7 @@
         }
     ],
     "entries": [],
-    "accounts": [
+    "books": [
         {
             "id": "1",
             "name": "bob",

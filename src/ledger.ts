@@ -4,8 +4,33 @@ import * as dataConnectors from "./data-connectors";
 import { FIFOQueue } from "./queue";
 import { sleep, groupBy } from "./utils";
 import { IPostingEntry, BaseDataConnector, IOperation, OperationStatus, OperationType} from "./base-data-connector";
-import { IOperationRequest, ITransferRequest, IAccountRequest, IPostingEntryRequest } from "./index";
-import { logger } from "./logger";
+export interface IPostingEntryRequest {
+    bookId: string,
+    assetId: string,
+    value: string,
+}
+export interface IOperationRequest {
+    type: OperationType,
+    memo: string,
+    entries: IPostingEntryRequest[],
+}
+export interface ITransferRequest {
+    fromBookId: string,
+    toBookId: string,
+    assetId: string,
+    value: string,
+    memo: string,
+}
+export interface IBookRequest {
+    name: string,
+    metadata?: {},
+    restrictions?: {
+        minBalance?: string;
+    }
+}
+export interface IBookBalances {
+    [assetId: string]: string,
+}
 export class LedgerSystem {
     private dataConnector: BaseDataConnector;
     private postingQueue!: FIFOQueue;
@@ -31,24 +56,23 @@ export class LedgerSystem {
         }
     }
     private async validateEntries(entries: IPostingEntryRequest[]) {
-        const accountGroupedEntries = groupBy(entries, "accountId");
-        logger.info(accountGroupedEntries)
-        for (const accountId of Object.keys(accountGroupedEntries)) {
-            const account = await this.dataConnector.getAccount(accountId);
-            if (account && account.restrictions) {
-                const accountEntries = accountGroupedEntries[accountId];
-                const accountBalances = this.getAccountBalances(accountId);
-                const assetGroupedEntries = groupBy(accountEntries, "assetId");
+        const bookGroupedEntries = groupBy(entries, "bookId");
+        for (const bookId of Object.keys(bookGroupedEntries)) {
+            const book = await this.dataConnector.getBook(bookId);
+            if (book && book.restrictions) {
+                const bookEntries = bookGroupedEntries[bookId];
+                const bookBalances = this.getBookBalances(bookId);
+                const assetGroupedEntries = groupBy(bookEntries, "assetId");
                 Object.keys(assetGroupedEntries).forEach((assetId) => {
-                    const assetBalance = (accountBalances as any)[assetId] || "0";
+                    const assetBalance = (bookBalances as any)[assetId] || "0";
                     let newEntriesSum
                     if (assetGroupedEntries[assetId].length > 1) {
                         newEntriesSum = assetGroupedEntries[assetId].reduce((r: string|IPostingEntry, i: IPostingEntry) => (new BigNumber(typeof r === "string" ? r : r.value).plus(new BigNumber(i.value))).toString());
                     } else {
                         newEntriesSum = assetGroupedEntries[assetId][0].value;
                     }
-                    if (account.restrictions && account.restrictions.minBalance && (new BigNumber(newEntriesSum).plus(new BigNumber(assetBalance))).isLessThan(new BigNumber(account.restrictions.minBalance))) {
-                        throw new Error(`Minimum credit balance required on account ${accountId} is ${account.restrictions.minBalance} ${assetId} | Current account balance: ${assetBalance} ${assetId}`);
+                    if (book.restrictions && book.restrictions.minBalance && (new BigNumber(newEntriesSum).plus(new BigNumber(assetBalance))).isLessThan(new BigNumber(book.restrictions.minBalance))) {
+                        throw new Error(`Minimum credit balance required on book ${bookId} is ${book.restrictions.minBalance} ${assetId} | Current book balance: ${assetBalance} ${assetId}`);
                     }
                 })
             }
@@ -93,12 +117,12 @@ export class LedgerSystem {
             memo: transferData.memo,
             entries: [
                 {
-                    accountId: transferData.fromAccountId,
+                    bookId: transferData.fromBookId,
                     assetId: transferData.assetId,
                     value: (-new BigNumber(transferData.value)).toString()
                 },
                 {
-                    accountId: transferData.toAccountId,
+                    bookId: transferData.toBookId,
                     assetId: transferData.assetId,
                     value: transferData.value
                 }
@@ -106,23 +130,23 @@ export class LedgerSystem {
         }
         return this.postOperation(operation, sync);
     }
-    public async createAccount(account: IAccountRequest) {
-        return this.dataConnector.insertAccount(account);
+    public async createBook(book: IBookRequest) {
+        return this.dataConnector.insertBook(book);
     }
-    public async getAccount(accountId: string) {
-        const account = await this.dataConnector.getAccount(accountId);
+    public async getBook(bookId: string) {
+        const book = await this.dataConnector.getBook(bookId);
         let balances = {};
-        if (account) {
-            balances = await this.getAccountBalances(accountId);
+        if (book) {
+            balances = await this.getBookBalances(bookId);
         }
-        return Object.assign(account, {balances});
+        return Object.assign(book, {balances});
     }
-    public async getAccountBalances(accountId: string) {
-        const accountEntries = await this.dataConnector.getAccountEntries(accountId);
-        const accountBalances: {[assetId: string]: string} = {};
-        for (const entry of accountEntries) {
-            accountBalances[entry.assetId] = new BigNumber(accountBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
+    public async getBookBalances(bookId: string) {
+        const bookEntries = await this.dataConnector.getBookEntries(bookId);
+        const bookBalances: {[assetId: string]: string} = {};
+        for (const entry of bookEntries) {
+            bookBalances[entry.assetId] = new BigNumber(bookBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
         }
-        return accountBalances;
+        return bookBalances;
     }
 }

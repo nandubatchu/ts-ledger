@@ -1,4 +1,4 @@
-import { IPostingEntryRequest } from "./index";
+import { IPostingEntryRequest } from "./ledger";
 
 export interface IEntityData {
     id?: string;
@@ -7,7 +7,7 @@ export interface IEntityData {
 }
 export interface IPostingEntry extends IEntityData {
     operationId: string;
-    accountId: string;
+    bookId: string;
     assetId: string;
     value: string
 }
@@ -27,7 +27,7 @@ export interface IOperation extends IEntityData {
     status: OperationStatus;
     rejectionReason?: string;
 }
-export interface IAccount extends IEntityData {
+export interface IBook extends IEntityData {
     name: string;
     metadata?: object;
     restrictions?: {
@@ -36,10 +36,10 @@ export interface IAccount extends IEntityData {
 }
 export enum EntityType {
     OPERATIONS = "operations",
-    ACCOUNTS = "accounts",
+    BOOKS = "books",
     ENTRIES = "entries",
 }
-export type EntityData = IPostingEntry|IOperation|IAccount;
+export type EntityData = IPostingEntry|IOperation|IBook;
 export interface IEntityFilter {
     [field: string]: string|string[];
 }
@@ -54,8 +54,8 @@ export abstract class BaseDataConnector {
     public async insertOperation(operation: IOperation): Promise<IOperation> {
         return this.insert(EntityType.OPERATIONS, operation) as Promise<IOperation>;
     }
-    public async insertAccount(account: IAccount): Promise<IAccount> {
-        return this.insert(EntityType.ACCOUNTS, account) as Promise<IAccount>;
+    public async insertBook(book: IBook): Promise<IBook> {
+        return this.insert(EntityType.BOOKS, book) as Promise<IBook>;
     }
     public async insertEntry(entry: IPostingEntry): Promise<IPostingEntry> {
         return this.insert(EntityType.ENTRIES, entry) as Promise<IPostingEntry>;
@@ -69,11 +69,11 @@ export abstract class BaseDataConnector {
     public async getAllOperationsByStatus(statuses: OperationStatus[]): Promise<IOperation[]> {
         return this.getAll(EntityType.OPERATIONS, {status: statuses}) as Promise<IOperation[]>
     }
-    public async getAccountEntries(accountId: string): Promise<IPostingEntry[]> {
-        return this.getAll(EntityType.ENTRIES, {accountId}) as Promise<IPostingEntry[]>;
+    public async getBookEntries(bookId: string): Promise<IPostingEntry[]> {
+        return this.getAll(EntityType.ENTRIES, {bookId}) as Promise<IPostingEntry[]>;
     }
-    public async getAccount(accountId: string): Promise<IAccount> {
-        return this.get(EntityType.ACCOUNTS, accountId) as Promise<IAccount>;
+    public async getBook(bookId: string): Promise<IBook> {
+        return this.get(EntityType.BOOKS, bookId) as Promise<IBook>;
     }
     public async updateOperationStatus(operationId: string, status: OperationStatus, rejectionReason?: string): Promise<IOperation> {
         return this.update(EntityType.OPERATIONS, operationId, {status, rejectionReason}) as Promise<IOperation>;
