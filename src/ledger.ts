@@ -35,8 +35,8 @@ export class LedgerSystem {
     private dataConnector: BaseDataConnector;
     private postingQueue!: FIFOQueue;
     private initPromise: Promise<void>;
-    constructor (databaseConfig: {class: dataConnectors.DataConnectorType}) {
-        this.dataConnector = new dataConnectors[databaseConfig.class](databaseConfig);
+    constructor (storageConfig: {class: dataConnectors.DataConnectorType}) {
+        this.dataConnector = new dataConnectors[storageConfig.class](storageConfig);
         this.initPromise = this.init();
     }
     private async init() {
