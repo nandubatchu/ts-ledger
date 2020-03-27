@@ -70,6 +70,9 @@ export class LedgerSystem {
         const bookGroupedEntries = groupBy(entries, "bookId");
         for (const bookId of Object.keys(bookGroupedEntries)) {
             const book = await this.dataConnector.getBook(bookId);
+            if (!book) {
+                throw new Error(`Book ID (${bookId}) is invalid!`);
+            }
             if (book && book.restrictions) {
                 const bookEntries = bookGroupedEntries[bookId];
                 const bookBalances = await this.getBookBalances(bookId);
