@@ -57,6 +57,10 @@ export class LedgerSystem {
         }
     }
     private async validateEntries(entries: IPostingEntryRequest[]) {
+        // empty entries
+        if (entries.length === 0) {
+            throw new Error(`No entries specified!`);
+        }
         // entries values to sum-up to zero
         const zeroSum: string = (entries as any).reduce((r: string|IPostingEntryRequest, i: IPostingEntryRequest) => new BigNumber(typeof r === "string" ? r : r.value).plus(new BigNumber(i.value)).toString())
         if (!new BigNumber(zeroSum).isEqualTo(new BigNumber("0"))) {
