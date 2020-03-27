@@ -1,5 +1,5 @@
 {
-    "operations": [
+    "OPERATIONS": [
         {
             "id": "1",
             "type": "TRANSFER",
@@ -21,8 +21,8 @@
             "updatedAt": 1532438528
         }
     ],
-    "entries": [],
-    "books": [
+    "ENTRIES": [],
+    "BOOKS": [
         {
             "id": "1",
             "name": "bob",

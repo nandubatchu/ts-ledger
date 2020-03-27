@@ -35,9 +35,9 @@ export interface IBook extends IEntityData {
     };
 }
 export enum EntityType {
-    OPERATIONS = "operations",
-    BOOKS = "books",
-    ENTRIES = "entries",
+    OPERATIONS = "OPERATIONS",
+    BOOKS = "BOOKS",
+    ENTRIES = "ENTRIES",
 }
 export type EntityData = IPostingEntry|IOperation|IBook;
 export interface IEntityFilter {

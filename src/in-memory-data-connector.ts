@@ -6,9 +6,9 @@ export class InMemoryDataConnector extends BaseDataConnector {
     private books: IBook[];
     constructor(config?: any) {
         super(config);
-        this.operations = fakes.operations as IOperation[];
-        this.entries = fakes.entries;
-        this.books = fakes.books;
+        this.operations = fakes.OPERATIONS as IOperation[];
+        this.entries = fakes.ENTRIES;
+        this.books = fakes.BOOKS;
     }
     private getEntityList = (entity: EntityType): any[] => {
         switch (entity) {
