@@ -48,7 +48,7 @@ export class LedgerSystem {
     private async getPendingOperations() {
         return this.dataConnector.getAllOperationsByStatus([OperationStatus.INIT, OperationStatus.PROCESSING])
             .then((pendingOperations) => {
-                return pendingOperations.sort((operationA: IOperation, operationB: IOperation) => operationB.id!.localeCompare(operationA.id!))
+                return pendingOperations.sort((operationA: IOperation, operationB: IOperation) => operationA.id!.localeCompare(operationB.id!))
             });
     }
     private getOperationTask(operation: IOperation) {
@@ -57,12 +57,18 @@ export class LedgerSystem {
         }
     }
     private async validateEntries(entries: IPostingEntryRequest[]) {
+        // entries values to sum-up to zero
+        const zeroSum: string = (entries as any).reduce((r: string|IPostingEntryRequest, i: IPostingEntryRequest) => new BigNumber(typeof r === "string" ? r : r.value).plus(new BigNumber(i.value)).toString())
+        if (!new BigNumber(zeroSum).isEqualTo(new BigNumber("0"))) {
+            throw new Error(`Entries do not add up to be zeroSum!`);
+        }
+        // apply any book restrictions available
         const bookGroupedEntries = groupBy(entries, "bookId");
         for (const bookId of Object.keys(bookGroupedEntries)) {
             const book = await this.dataConnector.getBook(bookId);
             if (book && book.restrictions) {
                 const bookEntries = bookGroupedEntries[bookId];
-                const bookBalances = this.getBookBalances(bookId);
+                const bookBalances = await this.getBookBalances(bookId);
                 const assetGroupedEntries = groupBy(bookEntries, "assetId");
                 Object.keys(assetGroupedEntries).forEach((assetId) => {
                     const assetBalance = (bookBalances as any)[assetId] || "0";

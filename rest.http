@@ -19,11 +19,11 @@ content-type: application/json
     "jsonrpc": "2.0",
     "method": "postOperation",
     "params": [{
-        "operationType": "TRANSFER",
+        "type": "TRANSFER",
         "memo": "testing transfer API",
         "entries": [
             {
-                "bookId": "1",
+                "bookId": "3",
                 "assetId": "btc",
                 "value": "-0.2"
             },
