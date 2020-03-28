@@ -5,6 +5,7 @@ import { logger } from "./logger";
 import configurations from "./config.json";
 import { LedgerSystem, IOperationRequest, ITransferRequest, IBookRequest, IBookBalances } from "./ledger";
 import { IOperation, IBook } from "./base-data-connector";
+import { rpcErrors } from "./errors";
 
 dotenv.config();
 const environment: string = process.env.NODE_ENV || "local";
@@ -17,6 +18,9 @@ const rpcMethods  = {
     getOperation: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
         const [operationId] = args;
         const operation = await ledgerSystem.getOperation(operationId);
+        if (!operation) {
+            callback(rpcErrors.OperationNotFound);
+        }
         callback(null, operation);
     },
     postOperation: async (args: [IOperationRequest, boolean|undefined], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
@@ -39,6 +43,9 @@ const rpcMethods  = {
     getBook: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IBook) => void) => {
         const [bookId] = args;
         const book = await ledgerSystem.getBook(bookId);
+        if (!book) {
+            callback(rpcErrors.BookNotFound);
+        }
         callback(null, book);
     },
     getBalances: async (args: [string, string], callback: (error?: jayson.JSONRPCError | null, result?: IBookBalances) => void) => {
@@ -56,6 +63,11 @@ const rpcMethods  = {
 };
 
 app.use(express.json());
+
+app.get('/test', (req, res) => {
+    res.send({'success': true})
+})
+
 app.use(new jayson.Server(rpcMethods).middleware())
 
 const port = config.API_PORT || 3000;

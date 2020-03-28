@@ -150,10 +150,10 @@ export class LedgerSystem {
     }
     public async getBook(bookId: string) {
         const book = await this.dataConnector.getBook(bookId);
-        let balances = {};
-        if (book) {
-            balances = await this.getBookBalances(bookId);
+        if (!book) {
+            return;
         }
+        const balances = await this.getBookBalances(bookId);
         return Object.assign(book, {balances});
     }
     public async getBookBalances(bookId: string) {
