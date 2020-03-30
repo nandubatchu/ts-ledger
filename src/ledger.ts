@@ -13,6 +13,7 @@ export interface IOperationRequest {
     type: OperationType,
     memo: string,
     entries: IPostingEntryRequest[],
+    metadata?: {[key: string]: any},
 }
 export interface ITransferRequest {
     fromBookId: string,
@@ -20,6 +21,7 @@ export interface ITransferRequest {
     assetId: string,
     value: string,
     memo: string,
+    metadata?: {[key: string]: any},
 }
 export interface IBookRequest {
     name: string,
@@ -141,7 +143,8 @@ export class LedgerSystem {
                     assetId: transferData.assetId,
                     value: transferData.value
                 }
-            ]
+            ],
+            metadata: transferData.metadata,
         }
         return this.postOperation(operation, sync);
     }
@@ -164,11 +167,14 @@ export class LedgerSystem {
         }
         return bookBalances;
     }
-    public async getBookOperations(bookId: string) {
+    public async getBookOperations(bookId: string, metadataFilter?: {[key: string]: any}) {
         const bookEntries = await this.dataConnector.getBookEntries(bookId);
         let bookOperationIds = bookEntries.map((postingEntry) => postingEntry.operationId);
         bookOperationIds = [...new Set(bookOperationIds)];  // remove duplicate ids
         const bookOperations = await this.dataConnector.getOperationsByIds(bookOperationIds);
-        return bookOperations
+        return metadataFilter ? bookOperations.filter((operation) => {
+            const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
+            return keys.some((key) => operation.metadata && operation.metadata[key] === metadataFilter[key]);
+        }) : bookOperations
     }
 }

@@ -26,6 +26,7 @@ export interface IOperation extends IEntityData {
     entries: IPostingEntryRequest[];
     status: OperationStatus;
     rejectionReason?: string;
+    metadata?: {[key: string]: any};
 }
 export interface IBook extends IEntityData {
     name: string;

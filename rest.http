@@ -52,7 +52,8 @@ content-type: application/json
         "toBookId": "1",
         "assetId": "btc",
         "value": "0.2",
-        "memo": "testing transfer API"
+        "memo": "testing transfer API",
+        "metadata": {"customTag": "customValue", "customTag2": "customValue2"}
     }, true],
     "id": 1
 }
@@ -86,7 +87,7 @@ content-type: application/json
 {
     "jsonrpc": "2.0",
     "method": "getOperations",
-    "params": ["1"],
+    "params": ["1", {"customTag": "customValue"}],
     "id": 1
 }
 

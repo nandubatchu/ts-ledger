@@ -60,9 +60,9 @@ const rpcMethods  = {
             callback(null, bookBalances)
         }
     },
-    getOperations: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation[]) => void) => {
-        const [bookId] = args;
-        const bookOperations = await ledgerSystem.getBookOperations(bookId);
+    getOperations: async (args: [string, object], callback: (error?: jayson.JSONRPCError | null, result?: IOperation[]) => void) => {
+        const [bookId, metadataFilter] = args;
+        const bookOperations = await ledgerSystem.getBookOperations(bookId, metadataFilter);
         callback(null, bookOperations);
     }
 };
