@@ -164,4 +164,11 @@ export class LedgerSystem {
         }
         return bookBalances;
     }
+    public async getBookOperations(bookId: string) {
+        const bookEntries = await this.dataConnector.getBookEntries(bookId);
+        let bookOperationIds = bookEntries.map((postingEntry) => postingEntry.operationId);
+        bookOperationIds = [...new Set(bookOperationIds)];  // remove duplicate ids
+        const bookOperations = await this.dataConnector.getOperationsByIds(bookOperationIds);
+        return bookOperations
+    }
 }

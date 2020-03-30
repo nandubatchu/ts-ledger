@@ -66,6 +66,9 @@ export abstract class BaseDataConnector {
     public async getOperation(operationId: string): Promise<IOperation> {
         return this.get(EntityType.OPERATIONS, operationId) as Promise<IOperation>;
     }
+    public async getOperationsByIds(operationIds: string[]): Promise<IOperation[]> {
+        return this.getAll(EntityType.OPERATIONS, {id: operationIds}) as Promise<IOperation[]>
+    }
     public async getAllOperationsByStatus(statuses: OperationStatus[]): Promise<IOperation[]> {
         return this.getAll(EntityType.OPERATIONS, {status: statuses}) as Promise<IOperation[]>
     }

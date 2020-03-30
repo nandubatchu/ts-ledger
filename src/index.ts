@@ -60,6 +60,11 @@ const rpcMethods  = {
             callback(null, bookBalances)
         }
     },
+    getOperations: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation[]) => void) => {
+        const [bookId] = args;
+        const bookOperations = await ledgerSystem.getBookOperations(bookId);
+        callback(null, bookOperations);
+    }
 };
 
 app.use(express.json());

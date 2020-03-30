@@ -79,6 +79,17 @@ content-type: application/json
     "id": 1
 }
 
+### getOperations
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "getOperations",
+    "params": ["1"],
+    "id": 1
+}
+
 ### createBook
 POST {{server}}
 content-type: application/json
