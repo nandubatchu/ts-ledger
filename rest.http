@@ -48,7 +48,7 @@ content-type: application/json
     "jsonrpc": "2.0",
     "method": "postTransfer",
     "params": [{
-        "fromBookId": "3",
+        "fromBookId": "2",
         "toBookId": "1",
         "assetId": "btc",
         "value": "0.2",

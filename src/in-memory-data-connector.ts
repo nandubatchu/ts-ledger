@@ -1,4 +1,3 @@
-import fakes from "./fakes.json";
 import { BaseDataConnector, EntityType, IOperation, IPostingEntry, IBook, EntityData, IEntityFilter } from "./base-data-connector";
 export class InMemoryDataConnector extends BaseDataConnector {
     private operations: IOperation[];
@@ -6,9 +5,9 @@ export class InMemoryDataConnector extends BaseDataConnector {
     private books: IBook[];
     constructor(config?: any) {
         super(config);
-        this.operations = fakes.OPERATIONS as IOperation[];
-        this.entries = fakes.ENTRIES;
-        this.books = fakes.BOOKS;
+        this.operations = [];
+        this.entries = [];
+        this.books = [];
     }
     private getEntityList = (entity: EntityType): any[] => {
         switch (entity) {

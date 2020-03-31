@@ -34,6 +34,7 @@ export interface IBookRequest {
 export interface IBookBalances {
     [assetId: string]: string,
 }
+const DEFAULT_BOOK_ID = "1";
 export class LedgerSystem {
     private dataConnector: BaseDataConnector;
     private postingQueue!: FIFOQueue;
@@ -47,6 +48,14 @@ export class LedgerSystem {
         const pendingTaskQueue = await this.getPendingOperations()
             .then((pendingOperations) => pendingOperations.map((operation) => this.getOperationTask(operation)))
         this.postingQueue = new FIFOQueue(pendingTaskQueue);
+        // create default_book if it does not exist
+        const book = await this.dataConnector.getBook(DEFAULT_BOOK_ID);
+        if (!book) {
+            await this.dataConnector.insertBook({
+                name: "default_book",
+                metadata: {},
+            })
+        }
     }
     private async getPendingOperations() {
         return this.dataConnector.getAllOperationsByStatus([OperationStatus.INIT, OperationStatus.PROCESSING])
