@@ -9,7 +9,8 @@ export interface IPostingEntry extends IEntityData {
     operationId: string;
     bookId: string;
     assetId: string;
-    value: string
+    value: string;
+    metadata?: {[key: string]: any};
 }
 export enum OperationType {
     TRANSFER = "TRANSFER",

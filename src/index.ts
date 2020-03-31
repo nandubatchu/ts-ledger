@@ -48,9 +48,9 @@ const rpcMethods  = {
         }
         callback(null, book);
     },
-    getBalances: async (args: [string, string], callback: (error?: jayson.JSONRPCError | null, result?: IBookBalances) => void) => {
-        const [bookId, assetId] = args;
-        const bookBalances = await ledgerSystem.getBookBalances(bookId);
+    getBalances: async (args: [string, string, {[key: string]: any}], callback: (error?: jayson.JSONRPCError | null, result?: IBookBalances) => void) => {
+        const [bookId, assetId, metadataFilter] = args;
+        const bookBalances = await ledgerSystem.getBookBalances(bookId, metadataFilter);
         if (assetId) {
             // TODO: need to move this logic to the database layer
             const balances: IBookBalances = {}

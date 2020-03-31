@@ -76,7 +76,7 @@ content-type: application/json
 {
     "jsonrpc": "2.0",
     "method": "getBalances",
-    "params": ["1", "btc"],
+    "params": ["1", "btc", {"customTag": "customValue"}],
     "id": 1
 }
 

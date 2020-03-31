@@ -8,6 +8,7 @@ export interface IPostingEntryRequest {
     bookId: string,
     assetId: string,
     value: string,
+    metadata?: {[key: string]: any},
 }
 export interface IOperationRequest {
     type: OperationType,
@@ -55,7 +56,7 @@ export class LedgerSystem {
     }
     private getOperationTask(operation: IOperation) {
         return async () => {
-            await this.postOperationEntries(operation.id!, operation.entries)
+            await this.postOperationEntries(operation.id!, operation.entries, operation.metadata);
         }
     }
     private async validateEntries(entries: IPostingEntryRequest[]) {
@@ -97,7 +98,7 @@ export class LedgerSystem {
     public async getOperation(operationId: string) {
         return this.dataConnector.getOperation(operationId);
     }
-    private async postOperationEntries(operationId: string, entriesRequests: IPostingEntryRequest[]) {
+    private async postOperationEntries(operationId: string, entriesRequests: IPostingEntryRequest[], metadata?: {[key: string]: any}) {
         await sleep(2000);   // To test the background queue
         await this.dataConnector.updateOperationStatus(operationId, OperationStatus.PROCESSING);
         // TODO: validate the operation
@@ -108,7 +109,7 @@ export class LedgerSystem {
             await this.dataConnector.updateOperationStatus(operationId, OperationStatus.REJECTED, error.message)
             return;
         }
-        const entries = entriesRequests.map((entryRequest) => Object.assign({operationId}, entryRequest) as IPostingEntry);
+        const entries = entriesRequests.map((entryRequest) => Object.assign({operationId, metadata}, entryRequest) as IPostingEntry);
         await this.dataConnector.insertMultipleEntries(entries);
         await this.dataConnector.updateOperationStatus(operationId, OperationStatus.APPLIED);
     }
@@ -118,7 +119,7 @@ export class LedgerSystem {
         return new Promise(async (resolve, reject) => {
             const operationId = (await this.dataConnector.insertOperation(operation)).id as string;
             this.postingQueue.enqueueTask(async () => {
-                await this.postOperationEntries(operationId, operation.entries);
+                await this.postOperationEntries(operationId, operation.entries, operation.metadata);
                 if (sync) {
                     resolve(operationId);
                 }
@@ -159,8 +160,14 @@ export class LedgerSystem {
         const balances = await this.getBookBalances(bookId);
         return Object.assign(book, {balances});
     }
-    public async getBookBalances(bookId: string) {
-        const bookEntries = await this.dataConnector.getBookEntries(bookId);
+    public async getBookBalances(bookId: string, metadataFilter?: {[key: string]: any}) {
+        let bookEntries = await this.dataConnector.getBookEntries(bookId);
+        if (metadataFilter) {
+            bookEntries = bookEntries.filter((entry) => {
+                const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
+                return keys.some((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
+            })
+        }
         const bookBalances: {[assetId: string]: string} = {};
         for (const entry of bookEntries) {
             bookBalances[entry.assetId] = new BigNumber(bookBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
