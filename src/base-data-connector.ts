@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import { IPostingEntryRequest } from "./ledger";
 
 export interface IEntityData {
@@ -34,6 +35,9 @@ export interface IBook extends IEntityData {
     restrictions?: {
         minBalance?: string;
     };
+}
+export interface IBookBalances {
+    [assetId: string]: string,
 }
 export enum EntityType {
     OPERATIONS = "OPERATIONS",
@@ -81,5 +85,13 @@ export abstract class BaseDataConnector {
     }
     public async updateOperationStatus(operationId: string, status: OperationStatus, rejectionReason?: string): Promise<IOperation> {
         return this.update(EntityType.OPERATIONS, operationId, {status, rejectionReason}) as Promise<IOperation>;
+    }
+    public async getBookBalances(bookId: string): Promise<any> {
+        const bookBalances: IBookBalances = {};
+        const bookEntries = await this.getBookEntries(bookId);
+        bookEntries.forEach((entry) => {
+            bookBalances[entry.assetId] = new BigNumber(bookBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
+        })
+        return bookBalances
     }
 }
