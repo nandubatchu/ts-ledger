@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { BaseDataConnector, IOperation, OperationStatus, OperationType} from "./base-data-connector";
-import { WsFIFOClient, IFIFOClient } from "./ws-fifo-client";
+import { IFIFOClient } from "./ws-fifo-client";
 export interface IPostingEntryRequest {
     bookId: string,
     assetId: string,

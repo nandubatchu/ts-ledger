@@ -1,4 +1,4 @@
-import { WsFIFOClient, IFIFOClient } from "./ws-fifo-client";
+import { IFIFOClient } from "./ws-fifo-client";
 import { sleep, groupBy } from "./utils";
 import { OperationStatus, IPostingEntry, BaseDataConnector } from "./base-data-connector";
 import { IPostingEntryRequest } from "./ledger";

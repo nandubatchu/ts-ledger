@@ -22,14 +22,14 @@ export class InMemoryDataConnector extends BaseDataConnector {
                 throw new Error("Entity not supported");
         }
     }
-    async insert(entity: EntityType, data: EntityData): Promise<EntityData> {
+    public async insert(entity: EntityType, data: EntityData): Promise<EntityData> {
         const length = this.getEntityList(entity).length;
         data.id = (length + 1).toString();
         data.createdAt = new Date().getTime();
         this.getEntityList(entity).push(data);
         return data;
     }
-    async insertMany(entity: EntityType, dataArray: any[]): Promise<EntityData[]> {
+    public async insertMany(entity: EntityType, dataArray: any[]): Promise<EntityData[]> {
         let length = this.getEntityList(entity).length;
         for (const row of dataArray) {
             row.id = (length + 1).toString();
@@ -39,10 +39,10 @@ export class InMemoryDataConnector extends BaseDataConnector {
         this.entries = this.getEntityList(entity).concat(dataArray)
         return dataArray;
     }
-    async get(entity: EntityType, id: string): Promise<EntityData> {
+    public async get(entity: EntityType, id: string): Promise<EntityData> {
         return this.getEntityList(entity).find((e: EntityData) => e.id === id);
     }
-    async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]> {
+    public async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]> {
         if (filter) {
             return this.getEntityList(entity).filter((row: EntityData) => {
                 return Object.keys(filter).every((key: string) => {
@@ -57,7 +57,7 @@ export class InMemoryDataConnector extends BaseDataConnector {
             return this.getEntityList(entity);
         }
     }
-    async update(entity: EntityType, id: string, newData: any): Promise<EntityData> {
+    public async update(entity: EntityType, id: string, newData: any): Promise<EntityData> {
         newData = Object.assign(newData, {updatedAt: new Date().getTime()});
         const rowIndex = this.getEntityList(entity).findIndex((e: EntityData) => e.id === id);
         this.getEntityList(entity)[rowIndex] = Object.assign(this.getEntityList(entity)[rowIndex], newData);

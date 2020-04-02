@@ -6,9 +6,13 @@ export class WsFIFOServer {
     private q!: string[];
     private dataConnector: BaseDataConnector;
     private clients: {[id: string]: WebSocket} = {};
+    private initPromise: Promise<void>;
     constructor(dataConnector: BaseDataConnector) {
         this.dataConnector = dataConnector;
-        this.init();
+        this.initPromise = this.init();
+    }
+    public ready = async () => {
+        return this.initPromise;
     }
     private init = async () => {
         this.q = await this.getPendingTaskIds() as string[];
