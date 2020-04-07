@@ -8,7 +8,8 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true,
       },
       name: {
         type: Sequelize.STRING,
@@ -36,7 +37,8 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true,
       },
       type: {
         type: Sequelize.STRING,
@@ -77,7 +79,8 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        primaryKey: true
+        primaryKey: true,
+        autoIncrement: true,
       },
       operationId: {
         type: Sequelize.STRING,

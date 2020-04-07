@@ -13,7 +13,7 @@
     "start": "npm run server",
     "dev:start": "npm run start",
     "dev": "nodemon --watch src -e ts,js --exec npm run dev:start",
-    "db:migrate": "node database", 
+    "db:migrate": "node database",
     "test": "./node_modules/.bin/mocha --require ts-node/register src/tests.ts"
   },
   "keywords": [],
@@ -25,6 +25,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "jayson": "^3.2.0",
+    "pg": "^8.0.0",
     "sequelize": "^5.21.5",
     "sqlite3": "^4.1.1",
     "uuid": "^7.0.3",
