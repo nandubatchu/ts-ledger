@@ -42,9 +42,11 @@ export class InMemoryDataConnector extends BaseDataConnector {
     async get(entity: EntityType, id: string): Promise<EntityData> {
         return this.getEntityList(entity).find((e: EntityData) => e.id === id);
     }
-    async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]> {
+    async getAll(entity: EntityType, filter?: IEntityFilter, orderBy?: [string, boolean], count?: number): Promise<EntityData[]> {
+        let filtered: EntityData[];
+        let ordered: EntityData[];
         if (filter) {
-            return this.getEntityList(entity).filter((row: EntityData) => {
+            filtered = this.getEntityList(entity).filter((row: EntityData) => {
                 return Object.keys(filter).every((key: string) => {
                     if (typeof filter[key] === "string") {
                         return filter[key] === (row as any)[key];
@@ -54,8 +56,18 @@ export class InMemoryDataConnector extends BaseDataConnector {
                 });
             })
         } else {
-            return this.getEntityList(entity);
+            filtered = this.getEntityList(entity);
         }
+        if (orderBy) {
+            filtered.sort((a: any, b: any) => a[orderBy[0]] - b[orderBy[0]])
+            if (orderBy[1]) {
+                filtered.reverse();
+            }
+            ordered = filtered;
+        } else {
+            ordered = filtered;
+        }
+        return count ? ordered.slice(0, count) : ordered;
     }
     async update(entity: EntityType, id: string, newData: any): Promise<EntityData> {
         newData = Object.assign(newData, {updatedAt: new Date().getTime()});
