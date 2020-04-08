@@ -98,6 +98,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
+      metadata: {
+        type: Sequelize.JSON,
+        allowNull: true
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false

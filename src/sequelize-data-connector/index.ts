@@ -36,21 +36,21 @@ export class SequelizeDataConnector extends BaseDataConnector {
         const model = this.entityModelMap[entity];
         // @ts-ignore
         const rowCreated = await model.create(row);
-        return rowCreated;
+        return rowCreated.dataValues;
     }
     public async insertMany(entity: EntityType, rows: EntityData[]): Promise<EntityData[]> {
         await this.initPromise;
         const model = this.entityModelMap[entity];
         // @ts-ignore
         const rowsCreated = await model.bulkCreate(rows);
-        return rowsCreated;
+        return rowsCreated.map((row: { dataValues: any; }) => row.dataValues);
     }
     public async get(entity: EntityType, id: string): Promise<EntityData> {
         await this.initPromise;
         const model = this.entityModelMap[entity];
         // @ts-ignore
         const rowFound = await model.findByPk(id);
-        return rowFound
+        return rowFound.dataValues
     }
     public async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]> {
         await this.initPromise;
@@ -58,13 +58,13 @@ export class SequelizeDataConnector extends BaseDataConnector {
         // @ts-ignore
         // TODO: filters
         const rowsFound = await model.findAll({ where: filter });
-        return rowsFound;
+        return rowsFound.map((row: { dataValues: any; }) => row.dataValues);
     }
     public async update(entity: EntityType, id: string, newData: any): Promise<EntityData> {
         await this.initPromise;
         const model = this.entityModelMap[entity];
         // @ts-ignore
         const [num, [updatedRow]] = await model.update(newData, {where: {id}, returning: true});
-        return updatedRow;
+        return updatedRow.dataValues;
     }
 }

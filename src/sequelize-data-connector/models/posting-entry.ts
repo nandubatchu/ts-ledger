@@ -6,4 +6,5 @@ export const PostingEntry = sequelize.define('posting_entry', {
     bookId: { type: DataTypes.STRING, allowNull: false },
     assetId: { type: DataTypes.STRING, allowNull: false },
     value: { type: DataTypes.STRING, allowNull: false },
+    metadata: { type: DataTypes.JSON, allowNull: true },
 });

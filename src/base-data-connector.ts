@@ -98,6 +98,9 @@ export abstract class BaseDataConnector {
         let bookEntries = await this.getBookEntries(bookId);
         if (metadataFilter) {
             bookEntries = bookEntries.filter((entry) => {
+                if (!entry.metadata) {
+                    return false;
+                }
                 const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
                 return keys.some((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
             })
