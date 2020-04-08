@@ -54,7 +54,7 @@ export abstract class BaseDataConnector {
     public abstract async insert(entity: EntityType, row: EntityData): Promise<EntityData>;
     public abstract async insertMany(entity: EntityType, rows: EntityData[]): Promise<EntityData[]>;
     public abstract async get(entity: EntityType, id: string): Promise<EntityData>;
-    public abstract async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]>;
+    public abstract async getAll(entity: EntityType, filter?: IEntityFilter, orderBy?: [string, boolean], count?: number): Promise<EntityData[]>;
     public abstract async update(entity: EntityType, id: string, newData: any): Promise<EntityData>;
     public async insertOperation(operation: IOperation): Promise<IOperation> {
         return this.insert(EntityType.OPERATIONS, operation) as Promise<IOperation>;
@@ -76,6 +76,9 @@ export abstract class BaseDataConnector {
     }
     public async getAllOperationsByStatus(statuses: OperationStatus[]): Promise<IOperation[]> {
         return this.getAll(EntityType.OPERATIONS, {status: statuses}) as Promise<IOperation[]>
+    }
+    public async getFirstInPendingOperation(): Promise<IOperation|undefined> {
+        return (await this.getAll(EntityType.OPERATIONS, {status: [OperationStatus.INIT, OperationStatus.PROCESSING]}, ["id", false], 1) as IOperation[])[0]
     }
     public async getBookEntries(bookId: string): Promise<IPostingEntry[]> {
         return this.getAll(EntityType.ENTRIES, {bookId}) as Promise<IPostingEntry[]>;

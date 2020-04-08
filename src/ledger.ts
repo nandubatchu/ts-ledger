@@ -1,4 +1,5 @@
 import BigNumber from "bignumber.js";
+import { EventEmitter } from "events";
 import { BaseDataConnector, IOperation, OperationStatus, OperationType} from "./base-data-connector";
 import { IFIFOClient } from "./ws-fifo-client";
 export interface IPostingEntryRequest {
@@ -27,34 +28,29 @@ export interface IBookRequest {
         minBalance?: string;
     }
 }
-export class LedgerApiHelper {
+export class LedgerApiHelper extends EventEmitter {
     private dataConnector: BaseDataConnector;
-    public queueClient?: IFIFOClient;
-    constructor (dataConnector: BaseDataConnector, queueClient: IFIFOClient) {
+    constructor (dataConnector: BaseDataConnector) {
+        super();
         this.dataConnector = dataConnector;
-        this.queueClient = queueClient;
     }
     public async getOperation(operationId: string) {
         return this.dataConnector.getOperation(operationId);
     }
     public async postOperation(operationRequest: IOperationRequest, sync?: boolean): Promise<string> {
-        if (!this.queueClient) {
-            throw new Error("Missing postingQueue");
-        }
         const operation: IOperation = Object.assign({status: OperationStatus.INIT}, operationRequest);
         return new Promise(async (resolve, reject) => {
             const operationId = (await this.dataConnector.insertOperation(operation)).id as string;
-            await this.queueClient!.submitTask(operationId);
             if (!sync) {
                 resolve(operationId);
             } else {
                 const taskCompletionCallback = (taskId: any) => {
                     if (sync && taskId === operationId) {
-                        this.queueClient!.removeListener("taskCompleted", taskCompletionCallback);
+                        this.removeListener("taskCompleted", taskCompletionCallback);
                         resolve(operationId)
                     }
                 }
-                this.queueClient!.on("taskCompleted", taskCompletionCallback)
+                this.on("taskCompleted", taskCompletionCallback)
             }
         })
     }
