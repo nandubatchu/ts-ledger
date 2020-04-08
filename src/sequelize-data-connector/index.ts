@@ -64,9 +64,7 @@ export class SequelizeDataConnector extends BaseDataConnector {
         await this.initPromise;
         const model = this.entityModelMap[entity];
         // @ts-ignore
-        const [updatedRowId] = await model.update(newData, {where: {id}});
-        // @ts-ignore
-        const updatedRow = await model.findByPk(updatedRowId);
+        const [num, [updatedRow]] = await model.update(newData, {where: {id}, returning: true});
         return updatedRow;
     }
 }
