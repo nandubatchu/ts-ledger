@@ -10,7 +10,8 @@ export interface IPostingEntry extends IEntityData {
     operationId: string;
     bookId: string;
     assetId: string;
-    value: string
+    value: string;
+    metadata?: {[key: string]: any};
 }
 export enum OperationType {
     TRANSFER = "TRANSFER",
@@ -47,6 +48,9 @@ export enum EntityType {
 export type EntityData = IPostingEntry|IOperation|IBook;
 export interface IEntityFilter {
     [field: string]: string|string[];
+}
+export interface IMetadataFilter {
+    [field: string]: any;
 }
 export abstract class BaseDataConnector {
     protected config?: any;
@@ -89,9 +93,15 @@ export abstract class BaseDataConnector {
     public async updateOperationStatus(operationId: string, status: OperationStatus, rejectionReason?: string): Promise<IOperation> {
         return this.update(EntityType.OPERATIONS, operationId, {status, rejectionReason}) as Promise<IOperation>;
     }
-    public async getBookBalances(bookId: string): Promise<any> {
+    public async getBookBalances(bookId: string, metadataFilter?: IMetadataFilter): Promise<any> {
         const bookBalances: IBookBalances = {};
-        const bookEntries = await this.getBookEntries(bookId);
+        let bookEntries = await this.getBookEntries(bookId);
+        if (metadataFilter) {
+            bookEntries = bookEntries.filter((entry) => {
+                const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
+                return keys.some((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
+            })
+        }
         bookEntries.forEach((entry) => {
             bookBalances[entry.assetId] = new BigNumber(bookBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
         })
