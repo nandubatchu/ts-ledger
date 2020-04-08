@@ -8,8 +8,8 @@ import { IOperation, IBook, IBookBalances } from "./base-data-connector";
 import { rpcErrors } from "./errors";
 import * as dataConnectors from "./data-connectors";
 import { WsFIFOServer } from "./ws-fifo-server";
-import { LedgerQueueWorker } from "./ledger-queue-worker";
-import { WsFIFOClient } from "./ws-fifo-client";
+import { OperationWorkerHelper } from "./ledger-queue-worker";
+import request from "request";
 
 dotenv.config();
 const environment: string = process.env.NODE_ENV || "local";
@@ -25,10 +25,10 @@ export const ledgerQueueServer = new WsFIFOServer(dataConnector);
 
 // LedgerQueueWoker applying operations to the posting entries
 // TODO: separate the execution of the LedgerQueueWorker from API server
-export const ledgerQueueWorker = new LedgerQueueWorker(dataConnector, new WsFIFOClient());
+export const ledgerQueueWorker = new OperationWorkerHelper(dataConnector);
 
 // LedgerApiHelper used by the API server for reading data and pushing operations to the queue
-export const ledgerApiHelper = new LedgerApiHelper(dataConnector, new WsFIFOClient());
+export const ledgerApiHelper = new LedgerApiHelper(dataConnector);
 
 const rpcMethods  = {
     getOperation: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
@@ -80,6 +80,11 @@ const rpcMethods  = {
         const [bookId, metadataFilter] = args;
         const bookOperations = await ledgerApiHelper.getBookOperations(bookId, metadataFilter);
         callback(null, bookOperations);
+    },
+    notifyOperationCompletion: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: string) => void) => {
+        const [taskId] = args;
+        ledgerApiHelper.emit("taskCompleted", taskId);
+        callback(null, taskId);
     }
 };
 
@@ -93,7 +98,23 @@ app.get('/test', (req, res) => {
 app.use(new jayson.Server(rpcMethods).middleware())
 
 const port = config.API_PORT || 3000;
-app.listen(port, () => {
-    logger.info(`API server istening on port ${port}!`)
-})
 
+const registerCallback = async (workerHost: string) => {
+    return new Promise((resolve, reject) => {
+        const healthCheckTimeout = setTimeout(() => {
+            request.get(`${workerHost}/test`, (err, res, body) => {
+                body = JSON.parse(body);
+                if (body && body.success) {
+                    clearTimeout(healthCheckTimeout);
+                    request.get(`${workerHost}/register-callbacks?callbackHost=http://${process.env.HOST_IP || "localhost"}:${port}`)
+                    resolve();
+                }
+            })
+        }, 500)
+    });
+}
+
+app.listen(port, async () => {
+    logger.info(`API server istening on port ${port}!`)
+    await registerCallback(process.env.REMOTE_WORKER_URL || "http://localhost:9000")
+})
