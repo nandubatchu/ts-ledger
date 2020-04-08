@@ -7,7 +7,6 @@ import { LedgerApiHelper, IOperationRequest, ITransferRequest, IBookRequest } fr
 import { IOperation, IBook, IBookBalances } from "./base-data-connector";
 import { rpcErrors } from "./errors";
 import * as dataConnectors from "./data-connectors";
-import { WsFIFOServer } from "./ws-fifo-server";
 import { OperationWorkerHelper } from "./ledger-queue-worker";
 import request from "request";
 
@@ -19,9 +18,6 @@ export const app = express(); // exported for testing purpose
 const storageConfig = config.DATABASE_CONFIG[config.DATABASE];
 export const dataConnector = new (dataConnectors as any)[storageConfig.class](storageConfig);
 
-// Spinning up FIFO queue server maintaining and notifying the queue status
-// TODO: separate the execution of the LedgerQueueServer from API server
-export const ledgerQueueServer = new WsFIFOServer(dataConnector);
 
 // LedgerQueueWoker applying operations to the posting entries
 // TODO: separate the execution of the LedgerQueueWorker from API server

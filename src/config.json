@@ -1,13 +1,13 @@
 {
     "local": {
         "API_PORT": 3000,
-        "DATABASE": "memory",
+        "DATABASE": "sqlite",
         "DATABASE_CONFIG": {
             "memory": {
                 "class": "InMemoryDataConnector"
             },
             "sqlite": {
-                "class": "SQLiteData"
+                "class": "SequelizeDataConnector"
             }
         }
     },
@@ -16,7 +16,7 @@
         "DATABASE": "sqlite",
         "DATABASE_CONFIG": {
             "sqlite": {
-                "class": "SQLiteData"
+                "class": "SequelizeDataConnector"
             }
         }
     },
@@ -25,7 +25,7 @@
         "DATABASE": "sqlite",
         "DATABASE_CONFIG": {
             "sqlite": {
-                "class": "SQLiteData"
+                "class": "SequelizeDataConnector"
             }
         }
     }
