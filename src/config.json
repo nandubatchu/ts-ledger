@@ -3,9 +3,6 @@
         "API_PORT": 3000,
         "DATABASE": "sqlite",
         "DATABASE_CONFIG": {
-            "memory": {
-                "class": "InMemoryDataConnector"
-            },
             "sqlite": {
                 "class": "SequelizeDataConnector"
             }
