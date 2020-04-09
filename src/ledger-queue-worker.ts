@@ -56,9 +56,7 @@ export class OperationWorkerHelper {
             await this.dataConnector.updateOperationStatus(operationId, OperationStatus.REJECTED, error.message)
             return;
         }
-        const entries = operation.entries.map((entryRequest) => Object.assign({operationId, metadata: operation.metadata}, entryRequest) as IPostingEntry);
-        await this.dataConnector.insertMultipleEntries(entries);
-        await this.dataConnector.updateOperationStatus(operationId, OperationStatus.APPLIED);
+        await this.dataConnector.applyOperation(operationId);
     }
 
     private async validateEntries(entries: IPostingEntryRequest[]) {

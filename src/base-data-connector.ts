@@ -110,4 +110,11 @@ export abstract class BaseDataConnector {
         })
         return bookBalances
     }
+    public async applyOperation(operationId: string): Promise<IOperation> {
+        let operation = await this.getOperation(operationId);
+        const entries = operation.entries.map((entryRequest) => Object.assign({operationId, metadata: operation.metadata}, entryRequest) as IPostingEntry);
+        await this.insertMultipleEntries(entries);
+        operation = await this.updateOperationStatus(operationId, OperationStatus.APPLIED);
+        return operation;
+    }
 }

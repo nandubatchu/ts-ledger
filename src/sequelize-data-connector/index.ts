@@ -1,5 +1,5 @@
 import { Sequelize } from "sequelize";
-import { BaseDataConnector, EntityType, EntityData, IEntityFilter } from "../base-data-connector";
+import { BaseDataConnector, EntityType, EntityData, IEntityFilter, IOperation, OperationStatus } from "../base-data-connector";
 import { logger } from "../logger";
 import { sequelize } from "./connection";
 import { Book } from "./models/book";
@@ -66,5 +66,22 @@ export class SequelizeDataConnector extends BaseDataConnector {
         // @ts-ignore
         const [num, [updatedRow]] = await model.update(newData, {where: {id}, returning: true});
         return updatedRow.dataValues;
+    }
+    public async applyOperation(operationId: string): Promise<IOperation> {
+        const finalOperation = await this.sequelize.transaction(async (transaction) => {
+            try {
+                // @ts-ignore
+                const operation = await Operation.findByPk(operationId, {transaction});
+                // @ts-ignore
+                const rowsCreated = await PostingEntry.bulkCreate(operation.dataValues.entries.map((entry) => Object.assign({operationId, meatadata: operation.dataValues.metadata}, entry)), {transaction});
+                // @ts-ignore
+                const [num, [updatedOperation]] = await Operation.update({status: OperationStatus.APPLIED}, {where: {id: operationId}, returning: true, transaction});
+                return updatedOperation;
+            } catch (error) {
+                // @ts-ignore
+                return Operation.update({status: OperationStatus.REJECTED, rejectionReason: error}, {where: {id: operationId}, returning: true});
+            }
+        })
+        return finalOperation;
     }
 }
