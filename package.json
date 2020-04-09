@@ -9,6 +9,7 @@
     "compile": "tsc",
     "build": "npm-run-all clean lint compile",
     "server": "node .",
+    "worker": "node dist/worker.js",
     "prestart": "npm run build",
     "start": "npm run server",
     "dev:start": "npm run start",
