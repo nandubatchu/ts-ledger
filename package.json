@@ -10,8 +10,9 @@
     "build": "npm-run-all clean lint compile",
     "server": "node .",
     "worker": "node dist/worker.js",
+    "ecosystem": "./node_modules/.bin/pm2-runtime ecosystem.config.js",
     "prestart": "npm run build",
-    "start": "./node_modules/.bin/pm2-runtime ecosystem.config.js",
+    "start": "npm run ecosystem",
     "dev": "nodemon --watch src -e ts,js --exec npm run start",
     "db:migrate": "node database",
     "test": "./node_modules/.bin/mocha --require ts-node/register src/tests.ts"
