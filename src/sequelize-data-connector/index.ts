@@ -1,4 +1,4 @@
-import { Sequelize } from "sequelize";
+import { Sequelize, Transaction } from "sequelize";
 import { BaseDataConnector, EntityType, EntityData, IEntityFilter, IOperation, OperationStatus } from "../base-data-connector";
 import { logger } from "../logger";
 import { sequelize } from "./connection";
@@ -50,15 +50,14 @@ export class SequelizeDataConnector extends BaseDataConnector {
         const model = this.entityModelMap[entity];
         // @ts-ignore
         const rowFound = await model.findByPk(id);
-        return rowFound.dataValues
+        return rowFound && rowFound.dataValues
     }
     public async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]> {
         await this.initPromise;
         const model = this.entityModelMap[entity];
         // @ts-ignore
-        // TODO: filters
         const rowsFound = await model.findAll({ where: filter });
-        return rowsFound.map((row: { dataValues: any; }) => row.dataValues);
+        return rowsFound && rowsFound.map((row: { dataValues: any; }) => row.dataValues);
     }
     public async update(entity: EntityType, id: string, newData: any): Promise<EntityData> {
         await this.initPromise;
@@ -68,7 +67,9 @@ export class SequelizeDataConnector extends BaseDataConnector {
         return updatedRow.dataValues;
     }
     public async applyOperation(operationId: string): Promise<IOperation> {
-        const finalOperation = await this.sequelize.transaction(async (transaction) => {
+        const finalOperation = await this.sequelize.transaction({
+            isolationLevel: Transaction.ISOLATION_LEVELS.SERIALIZABLE,
+        }, async (transaction) => {
             try {
                 // @ts-ignore
                 const operation = await Operation.findByPk(operationId, {transaction});

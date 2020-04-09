@@ -2,26 +2,15 @@ import express from "express";
 import jayson from "jayson";
 import dotenv from "dotenv";
 import { logger } from "./logger";
-import configurations from "./config.json";
 import { LedgerApiHelper, IOperationRequest, ITransferRequest, IBookRequest } from "./ledger";
 import { IOperation, IBook, IBookBalances } from "./base-data-connector";
 import { rpcErrors } from "./errors";
-import * as dataConnectors from "./data-connectors";
-import { OperationWorkerHelper } from "./ledger-queue-worker";
 import request from "request";
-
+import { SequelizeDataConnector } from "./sequelize-data-connector";
 dotenv.config();
-const environment: string = process.env.NODE_ENV || "local";
-const config = (configurations as {[environment: string]: any})[environment];
+
 export const app = express(); // exported for testing purpose
-
-const storageConfig = config.DATABASE_CONFIG[config.DATABASE];
-export const dataConnector = new (dataConnectors as any)[storageConfig.class](storageConfig);
-
-
-// LedgerQueueWoker applying operations to the posting entries
-// TODO: separate the execution of the LedgerQueueWorker from API server
-export const ledgerQueueWorker = new OperationWorkerHelper(dataConnector);
+export const dataConnector = new SequelizeDataConnector();
 
 // LedgerApiHelper used by the API server for reading data and pushing operations to the queue
 export const ledgerApiHelper = new LedgerApiHelper(dataConnector);
@@ -93,24 +82,42 @@ app.get('/test', (req, res) => {
 
 app.use(new jayson.Server(rpcMethods).middleware())
 
-const port = config.API_PORT || 3000;
+const port = process.env.API_PORT;
 
 const registerCallback = async (workerHost: string) => {
     return new Promise((resolve, reject) => {
-        const healthCheckTimeout = setTimeout(() => {
+        const healthCheckTimeout = setInterval(() => {
             request.get(`${workerHost}/test`, (err, res, body) => {
-                body = JSON.parse(body);
-                if (body && body.success) {
-                    clearTimeout(healthCheckTimeout);
-                    request.get(`${workerHost}/register-callbacks?callbackHost=http://${process.env.HOST_IP || "localhost"}:${port}`)
-                    resolve();
+                if (err) {
+                    logger.error(err);
+                } else {
+                    body = body && JSON.parse(body);
+                    if (body && body.success) {
+                        clearInterval(healthCheckTimeout);
+                        request.get(`${workerHost}/register-callbacks?callbackHost=http://${process.env.HOST_IP}:${port}`, (e, r, b) => {
+                            if (e) {
+                                logger.error(e);
+                            } else {
+                                b = b && JSON.parse(b);
+                                if (b && b.success) {
+                                    logger.info("Registered successfully for callbacks from worker!");
+                                    resolve();
+                                }
+                            }
+                        })
+                    }
                 }
             })
         }, 500)
     });
 }
 
-app.listen(port, async () => {
-    logger.info(`API server istening on port ${port}!`)
-    await registerCallback(process.env.REMOTE_WORKER_URL || "http://localhost:9000")
+const workerEndpoint = process.env.REMOTE_WORKER_URL;
+if (!workerEndpoint) {
+    throw new Error("REMOTE_WORKER_URL not set!")
+}
+registerCallback(workerEndpoint).then(() => {
+    app.listen(port, async () => {
+        logger.info(`API server listening on port ${port}!`);
+    })
 })

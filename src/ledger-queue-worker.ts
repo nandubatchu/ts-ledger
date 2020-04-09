@@ -6,13 +6,13 @@ import { OperationStatus, IPostingEntry, BaseDataConnector } from "./base-data-c
 import { IPostingEntryRequest } from "./ledger";
 import BigNumber from "bignumber.js";
 import { logger } from "./logger";
-import { ledgerQueueWorker } from "./index";
+import { SequelizeDataConnector } from "./sequelize-data-connector";
 dotenv.config();
 
 export const workerApp = express(); // exported for testing purpose
 
 export class OperationWorkerHelper {
-    public callbackHosts: Set<string> = new Set();
+    public callbackHosts: Set<string> = new Set((process.env.REMOTE_API_SERVERS && process.env.REMOTE_API_SERVERS.split(",")) || []);
     private dataConnector: BaseDataConnector;
     constructor(dataConnector: BaseDataConnector) {
         this.dataConnector = dataConnector;
@@ -97,6 +97,10 @@ export class OperationWorkerHelper {
     }
 }
 
+// initialise the worker class
+const operationWorkerHelper = new OperationWorkerHelper(new SequelizeDataConnector());
+
+// defining the http interface of the worker instance
 workerApp.use(express.json());
 
 workerApp.get('/test', (req, res) => {
@@ -105,11 +109,12 @@ workerApp.get('/test', (req, res) => {
 })
 
 workerApp.get('/register-callbacks', (req, res) => {
-    ledgerQueueWorker.callbackHosts.add(req.query.callbackHost);
+    operationWorkerHelper.callbackHosts.add(req.query.callbackHost);
     res.send({'success': true})
 })
 
-const port = process.env.WORKER_PORT || 9000;
+// start the http server
+const port = process.env.WORKER_PORT;
 workerApp.listen(port, () => {
-    logger.info(`API server istening on port ${port}!`)
+    logger.info(`Worker listening on port ${port}!`)
 })

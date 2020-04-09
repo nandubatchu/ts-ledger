@@ -1,7 +1,6 @@
 import { Sequelize } from "sequelize";
 import dotenv from "dotenv";
 import { logger } from "../logger";
-
 dotenv.config();
 
 const connectionString = process.env.DB_CONNECTION_STRING;

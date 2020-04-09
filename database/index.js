@@ -1,12 +1,12 @@
+const argv = require('yargs').argv;
+const dotenv = require('dotenv');
 const Sequelize = require('sequelize');
 const path = require('path');
 const Umzug = require('umzug');
+dotenv.config();
 
 // creates a basic sqlite database
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: path.join(__dirname, './db.sqlite'),
-  });
+const sequelize = new Sequelize(process.env.DB_CONNECTION_STRING);
 
 const umzug = new Umzug({
   migrations: {
@@ -26,6 +26,11 @@ const umzug = new Umzug({
 
 (async () => {
   // checks migrations and run them if they are not already applied
-  await umzug.up();
-  console.log('All migrations performed successfully');
+  if (argv._[0] == "down") {
+    const [migration] = await umzug.down();
+    console.log(`Rolledback ${migration.file} successfully`);
+  } else {
+    await umzug.up();
+    console.log('All migrations performed successfully');
+  }
 })();
