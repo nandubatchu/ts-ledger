@@ -1,5 +1,7 @@
 import BigNumber from "bignumber.js";
 import { IPostingEntryRequest } from "./ledger";
+import { logger } from "./logger";
+import { sleep } from "./utils";
 
 export interface IEntityData {
     id?: string;
@@ -116,5 +118,29 @@ export abstract class BaseDataConnector {
         await this.insertMultipleEntries(entries);
         operation = await this.updateOperationStatus(operationId, OperationStatus.APPLIED);
         return operation;
+    }
+    public async applyFirstInOperation(entriesValidator: (entries: IPostingEntryRequest[]) => Promise<void>): Promise<string|undefined> {
+        // Get the first-in-pending operation
+        const pendingFirstInOperation = await this.getFirstInPendingOperation();
+        const operationId = pendingFirstInOperation && pendingFirstInOperation.id;
+        if (operationId) {
+            // If there is a pending operation found, try to apply the corresponding posting entries
+            logger.info(`Applying operation ${operationId}`)
+            // Mark the operation status to be processing
+            const operation = await this.updateOperationStatus(operationId, OperationStatus.PROCESSING);
+            // TODO: validate that operation is not applied already into entries
+            try {
+                // validate the integrity of the entries provided
+                await entriesValidator(operation.entries);
+            } catch (error) {
+                // reject the operation with proper rejectionReason
+                await this.updateOperationStatus(operationId, OperationStatus.REJECTED, error.message)
+                return operationId;
+            }
+            // apply the entries
+            await this.applyOperation(operationId);
+            await sleep(2000);  // To test the background queue
+        }
+        return operationId
     }
 }
