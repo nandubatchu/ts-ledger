@@ -8,5 +8,4 @@ RUN npm install
 # Bundle app source
 COPY . .
 RUN npm run-script build
-EXPOSE 3000
-CMD [ "npm", "run-script", "server" ]
+CMD [ "npm", "run-script", "ecosystem" ]

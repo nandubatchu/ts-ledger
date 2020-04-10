@@ -1,4 +1,7 @@
+import BigNumber from "bignumber.js";
 import { IPostingEntryRequest } from "./ledger";
+import { logger } from "./logger";
+import { sleep } from "./utils";
 
 export interface IEntityData {
     id?: string;
@@ -36,6 +39,9 @@ export interface IBook extends IEntityData {
         minBalance?: string;
     };
 }
+export interface IBookBalances {
+    [assetId: string]: string,
+}
 export enum EntityType {
     OPERATIONS = "OPERATIONS",
     BOOKS = "BOOKS",
@@ -45,13 +51,16 @@ export type EntityData = IPostingEntry|IOperation|IBook;
 export interface IEntityFilter {
     [field: string]: string|string[];
 }
+export interface IMetadataFilter {
+    [field: string]: any;
+}
 export abstract class BaseDataConnector {
     protected config?: any;
     constructor(config?: any) {this.config = config};
     public abstract async insert(entity: EntityType, row: EntityData): Promise<EntityData>;
     public abstract async insertMany(entity: EntityType, rows: EntityData[]): Promise<EntityData[]>;
     public abstract async get(entity: EntityType, id: string): Promise<EntityData>;
-    public abstract async getAll(entity: EntityType, filter?: IEntityFilter): Promise<EntityData[]>;
+    public abstract async getAll(entity: EntityType, filter?: IEntityFilter, orderBy?: [string, boolean], count?: number): Promise<EntityData[]>;
     public abstract async update(entity: EntityType, id: string, newData: any): Promise<EntityData>;
     public async insertOperation(operation: IOperation): Promise<IOperation> {
         return this.insert(EntityType.OPERATIONS, operation) as Promise<IOperation>;
@@ -74,6 +83,9 @@ export abstract class BaseDataConnector {
     public async getAllOperationsByStatus(statuses: OperationStatus[]): Promise<IOperation[]> {
         return this.getAll(EntityType.OPERATIONS, {status: statuses}) as Promise<IOperation[]>
     }
+    public async getFirstInPendingOperation(): Promise<IOperation|undefined> {
+        return (await this.getAll(EntityType.OPERATIONS, {status: [OperationStatus.INIT, OperationStatus.PROCESSING]}, ["id", false], 1) as IOperation[])[0]
+    }
     public async getBookEntries(bookId: string): Promise<IPostingEntry[]> {
         return this.getAll(EntityType.ENTRIES, {bookId}) as Promise<IPostingEntry[]>;
     }
@@ -82,5 +94,53 @@ export abstract class BaseDataConnector {
     }
     public async updateOperationStatus(operationId: string, status: OperationStatus, rejectionReason?: string): Promise<IOperation> {
         return this.update(EntityType.OPERATIONS, operationId, {status, rejectionReason}) as Promise<IOperation>;
+    }
+    public async getBookBalances(bookId: string, metadataFilter?: IMetadataFilter): Promise<any> {
+        const bookBalances: IBookBalances = {};
+        let bookEntries = await this.getBookEntries(bookId);
+        if (metadataFilter) {
+            bookEntries = bookEntries.filter((entry) => {
+                if (!entry.metadata) {
+                    return false;
+                }
+                const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
+                return keys.some((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
+            })
+        }
+        bookEntries.forEach((entry) => {
+            bookBalances[entry.assetId] = new BigNumber(bookBalances[entry.assetId] || "0").plus(new BigNumber(entry.value)).toString()
+        })
+        return bookBalances
+    }
+    public async applyOperation(operationId: string): Promise<IOperation> {
+        let operation = await this.getOperation(operationId);
+        const entries = operation.entries.map((entryRequest) => Object.assign({operationId, metadata: operation.metadata}, entryRequest) as IPostingEntry);
+        await this.insertMultipleEntries(entries);
+        operation = await this.updateOperationStatus(operationId, OperationStatus.APPLIED);
+        return operation;
+    }
+    public async applyFirstInOperation(entriesValidator: (entries: IPostingEntryRequest[]) => Promise<void>): Promise<string|undefined> {
+        // Get the first-in-pending operation
+        const pendingFirstInOperation = await this.getFirstInPendingOperation();
+        const operationId = pendingFirstInOperation && pendingFirstInOperation.id;
+        if (operationId) {
+            // If there is a pending operation found, try to apply the corresponding posting entries
+            logger.info(`Applying operation ${operationId}`)
+            // Mark the operation status to be processing
+            const operation = await this.updateOperationStatus(operationId, OperationStatus.PROCESSING);
+            // TODO: validate that operation is not applied already into entries
+            try {
+                // validate the integrity of the entries provided
+                await entriesValidator(operation.entries);
+            } catch (error) {
+                // reject the operation with proper rejectionReason
+                await this.updateOperationStatus(operationId, OperationStatus.REJECTED, error.message)
+                return operationId;
+            }
+            // apply the entries
+            await this.applyOperation(operationId);
+            await sleep(2000);  // To test the background queue
+        }
+        return operationId
     }
 }
