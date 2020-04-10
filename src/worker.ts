@@ -96,7 +96,7 @@ workerApp.get('/register-callbacks', (req, res) => {
 })
 
 // start the http server
-const port = process.env.WORKER_PORT;
+const port = process.env.WORKER_PORT || 9000;
 workerApp.listen(port, () => {
     logger.info(`Worker listening on port ${port}!`)
 })
