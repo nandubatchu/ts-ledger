@@ -12,7 +12,7 @@ dotenv.config();
 export const workerApp = express(); // exported for testing purpose
 
 export class OperationWorkerHelper {
-    public callbackHosts: Set<string> = new Set((process.env.REMOTE_API_SERVERS && process.env.REMOTE_API_SERVERS.split(",")) || []);
+    public callbackHosts: Set<string> = new Set((process.env.REMOTE_API_SERVERS && process.env.REMOTE_API_SERVERS.split(",")) || ["http://localhost:3000"]);
     private dataConnector: BaseDataConnector;
     constructor(dataConnector: BaseDataConnector) {
         this.dataConnector = dataConnector;
