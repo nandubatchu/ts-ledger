@@ -21,7 +21,7 @@ export class OperationWorkerHelper {
     private clearQueue = async () => {
         const taskId = await this.dataConnector.applyFirstInOperation(this.validateEntries.bind(this));
         if (taskId) {
-            this.callbackHosts.forEach(async (host) => {
+            await Promise.all([...this.callbackHosts].map(async (host: string) => {
                 request.post({
                     uri: host,
                     headers: {'Content-Type': 'application/json'},
@@ -35,7 +35,7 @@ export class OperationWorkerHelper {
                     if (error) {logger.error(`Task ${taskId} completion notification failed for ${host} with error: ${error.message}`);}
                     else {logger.info(`Notified completion of task ${taskId} to ${host}`)}
                 })
-            })
+            }))
         }
         await sleep(1000);   // TODO: optimise the frequency of queue
         await this.clearQueue();
