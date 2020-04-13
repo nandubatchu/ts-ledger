@@ -22,7 +22,7 @@ export class OperationWorkerHelper {
         const taskId = await this.dataConnector.applyFirstInOperation(this.validateEntries.bind(this));
         if (taskId) {
             await Promise.all([...this.callbackHosts].map(async (host: string) => {
-                request.post({
+                return request.post({
                     uri: host,
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
