@@ -22,18 +22,27 @@ export class OperationWorkerHelper {
         const taskId = await this.dataConnector.applyFirstInOperation(this.validateEntries.bind(this));
         if (taskId) {
             await Promise.all([...this.callbackHosts].map(async (host: string) => {
-                return request.post({
-                    uri: host,
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        "jsonrpc": "2.0",
-                        "method": "notifyOperationCompletion",
-                        "params": [taskId],
-                        "id": 1
-                    }),
-                }, (error, response, body) => {
-                    if (error) {logger.error(`Task ${taskId} completion notification failed for ${host} with error: ${error.message}`);}
-                    else {logger.info(`Notified completion of task ${taskId} to ${host}`)}
+                return new Promise((resolve, reject) => {
+                    request.post({
+                        uri: host,
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            "jsonrpc": "2.0",
+                            "method": "notifyOperationCompletion",
+                            "params": [taskId],
+                            "id": 1
+                        }),
+                    }, (error, response, body) => {
+                        if (error) {
+                            const errorMsg = `Task ${taskId} completion notification failed for ${host} with error: ${error.message}`
+                            logger.error(errorMsg);
+                            reject(new Error(errorMsg));
+                        }
+                        else {
+                            logger.info(`Notified completion of task ${taskId} to ${host}`);
+                            resolve();
+                        }
+                    })
                 })
             }))
         }
