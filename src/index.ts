@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { logger } from "./logger";
 import { LedgerApiHelper, IOperationRequest, ITransferRequest, IBookRequest } from "./ledger";
 import { IOperation, IBook, IBookBalances } from "./base-data-connector";
-import { rpcErrors } from "./errors";
+import { rpcErrors, JSONRPCError } from "./errors";
 import request from "request";
 import { SequelizeDataConnector } from "./sequelize-data-connector";
 dotenv.config();
@@ -15,61 +15,101 @@ export const dataConnector = new SequelizeDataConnector();
 // LedgerApiHelper used by the API server for reading data and pushing operations to the queue
 export const ledgerApiHelper = new LedgerApiHelper(dataConnector);
 
-const rpcMethods  = {
+const rpcMethods: {[methodName: string]: jayson.MethodLike} = {
     getOperation: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
-        const [operationId] = args;
-        const operation = await ledgerApiHelper.getOperation(operationId);
-        if (!operation) {
-            callback(rpcErrors.OperationNotFound);
+        try {
+            const [operationId] = args;
+            const operation = await ledgerApiHelper.getOperation(operationId);
+            if (!operation) {
+                callback(JSONRPCError.fromCode(rpcErrors.NotFound, ["operation", operationId]));
+            }
+            callback(null, operation);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
         }
-        callback(null, operation);
     },
     postOperation: async (args: [IOperationRequest, boolean|undefined], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
-        const [operationRequest, sync] = args;
-        const operationId = await ledgerApiHelper.postOperation(operationRequest, sync);
-        const operation = await ledgerApiHelper.getOperation(operationId);
-        callback(null, operation);
+        try {
+            const [operationRequest, sync] = args;
+            const operationId = await ledgerApiHelper.postOperation(operationRequest, sync);
+            const operation = await ledgerApiHelper.getOperation(operationId);
+            callback(null, operation);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
+        }
     },
     postTransfer: async (args: [ITransferRequest, boolean|undefined], callback: (error?: jayson.JSONRPCError | null, result?: IOperation) => void) => {
-        const [transferRequest, sync] = args;
-        const operationId = await ledgerApiHelper.postTransferOperation(transferRequest, sync);
-        const operation = await ledgerApiHelper.getOperation(operationId);
-        callback(null, operation);
+        try {
+            const [transferRequest, sync] = args;
+            const operationId = await ledgerApiHelper.postTransferOperation(transferRequest, sync);
+            const operation = await ledgerApiHelper.getOperation(operationId);
+            callback(null, operation);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
+        }
     },
     createBook: async (args: [IBookRequest], callback: (error?: jayson.JSONRPCError | null, result?: IBook) => void) => {
-        const [bookRequest] = args;
-        const book = await ledgerApiHelper.createBook(bookRequest);
-        callback(null, book);
+        try {
+            const [bookRequest] = args;
+            const book = await ledgerApiHelper.createBook(bookRequest);
+            callback(null, book);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
+        }
     },
     getBook: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: IBook) => void) => {
-        const [bookId] = args;
-        const book = await ledgerApiHelper.getBook(bookId);
-        if (!book) {
-            callback(rpcErrors.BookNotFound);
+        try {
+            const [bookId] = args;
+            const book = await ledgerApiHelper.getBook(bookId);
+            if (!book) {
+                callback(JSONRPCError.fromCode(rpcErrors.NotFound, ["book", bookId]));
+            }
+            callback(null, book);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
         }
-        callback(null, book);
     },
     getBalances: async (args: [string, string, {[key: string]: any}], callback: (error?: jayson.JSONRPCError | null, result?: IBookBalances) => void) => {
-        const [bookId, assetId, metadataFilter] = args;
-        const bookBalances = await ledgerApiHelper.getBookBalances(bookId, metadataFilter);
-        if (assetId) {
-            // TODO: need to move this logic to the database layer
-            const balances: IBookBalances = {}
-            balances[assetId] = bookBalances[assetId];
-            callback(null, balances)
-        } else {
-            callback(null, bookBalances)
+        try {
+            const [bookId, assetId, metadataFilter] = args;
+            const bookBalances = await ledgerApiHelper.getBookBalances(bookId, metadataFilter);
+            if (assetId) {
+                // TODO: need to move this logic to the database layer
+                const balances: IBookBalances = {}
+                balances[assetId] = bookBalances[assetId];
+                callback(null, balances)
+            } else {
+                callback(null, bookBalances)
+            }
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
         }
     },
     getOperations: async (args: [string, object], callback: (error?: jayson.JSONRPCError | null, result?: IOperation[]) => void) => {
-        const [bookId, metadataFilter] = args;
-        const bookOperations = await ledgerApiHelper.getBookOperations(bookId, metadataFilter);
-        callback(null, bookOperations);
+        try {
+            const [bookId, metadataFilter] = args;
+            const bookOperations = await ledgerApiHelper.getBookOperations(bookId, metadataFilter);
+            callback(null, bookOperations);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
+        }
     },
     notifyOperationCompletion: async (args: [string], callback: (error?: jayson.JSONRPCError | null, result?: string) => void) => {
-        const [taskId] = args;
-        ledgerApiHelper.emit("taskCompleted", taskId);
-        callback(null, taskId);
+        try {
+            const [taskId] = args;
+            ledgerApiHelper.emit("taskCompleted", taskId);
+            callback(null, taskId);
+        } catch (error) {
+            logger.error(error.stack);
+            callback(JSONRPCError.fromCode(rpcErrors.InternalError));
+        }
     }
 };
 
