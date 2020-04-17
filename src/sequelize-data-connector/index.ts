@@ -89,7 +89,7 @@ export class SequelizeDataConnector extends BaseDataConnector {
                         await entriesValidator(operation.entries);
                         // @ts-ignore
                         // apply the entries
-                        await PostingEntry.bulkCreate(updatedOperation.dataValues.entries.map((entry) => Object.assign({operationId, meatadata: updatedOperation.dataValues.metadata}, entry)), {transaction});
+                        await PostingEntry.bulkCreate(updatedOperation.dataValues.entries.map((entry) => Object.assign({operationId, metadata: updatedOperation.dataValues.metadata}, entry)), {transaction});
                         // @ts-ignore
                         // Mark the operation status to be applied
                         await Operation.update({status: OperationStatus.APPLIED}, {where: {id: operationId}, returning: true, transaction});
