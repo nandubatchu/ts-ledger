@@ -129,14 +129,14 @@ const registerCallback = async (workerHost: string) => {
         const healthCheckTimeout = setInterval(() => {
             request.get(`${workerHost}/test`, (err, res, body) => {
                 if (err) {
-                    logger.error(err);
+                    logger.error(err.message);
                 } else {
                     body = body && JSON.parse(body);
                     if (body && body.success) {
                         clearInterval(healthCheckTimeout);
                         request.get(`${workerHost}/register-callbacks?callbackHost=http://${process.env.HOST_IP || "localhost"}:${port}`, (e, r, b) => {
                             if (e) {
-                                logger.error(e);
+                                logger.error(e.message);
                             } else {
                                 b = b && JSON.parse(b);
                                 if (b && b.success) {
