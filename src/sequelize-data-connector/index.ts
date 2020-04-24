@@ -93,7 +93,7 @@ export class SequelizeDataConnector extends BaseDataConnector {
                         // @ts-ignore
                         // Mark the operation status to be applied
                         await Operation.update({status: OperationStatus.APPLIED}, {where: {id: operationId}, returning: true, transaction});
-                        await sleep(1000);  // To test the background queue
+                        // await sleep(1000);  // To test the background queue
                         logger.info(`Applied operation ${operationId}`);
                     }
                 } catch (error) {
