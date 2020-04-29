@@ -75,7 +75,7 @@ export class LedgerApiHelper extends EventEmitter {
                 {
                     bookId: transferData.fromBookId,
                     assetId: transferData.assetId,
-                    value: (-new BigNumber(transferData.value)).toString()
+                    value: new BigNumber(transferData.value).multipliedBy(new BigNumber("-1")).toString()
                 },
                 {
                     bookId: transferData.toBookId,
