@@ -104,7 +104,7 @@ export abstract class BaseDataConnector {
                     return false;
                 }
                 const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
-                return keys.some((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
+                return keys.every((key) => entry.metadata && entry.metadata[key] === metadataFilter[key]);
             })
         }
         bookEntries.forEach((entry) => {

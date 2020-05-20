@@ -106,7 +106,7 @@ export class LedgerApiHelper extends EventEmitter {
         const bookOperations = await this.dataConnector.getOperationsByIds(bookOperationIds);
         return metadataFilter ? bookOperations.filter((operation) => {
             const keys = Object.keys(metadataFilter).filter((key) => metadataFilter[key] !== undefined);
-            return keys.some((key) => operation.metadata && operation.metadata[key] === metadataFilter[key]);
+            return keys.every((key) => operation.metadata && operation.metadata[key] === metadataFilter[key]);
         }) : bookOperations
     }
 }
