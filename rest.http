@@ -1,0 +1,106 @@
+@server = http://localhost:3000
+
+### health check
+GET {{server}}/test
+
+### getOperation
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "getOperation",
+    "params": ["1"],
+    "id": 1
+}
+
+### postOperation
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "postOperation",
+    "params": [{
+        "type": "TRANSFER",
+        "memo": "testing transfer API",
+        "entries": [
+            {
+                "bookId": "3",
+                "assetId": "btc",
+                "value": "-0.2"
+            },
+            {
+                "bookId": "2",
+                "assetId": "btc",
+                "value": "0.2"
+            }
+        ]    
+    }, false],
+    "id": 1
+}
+
+### postTransfer
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "postTransfer",
+    "params": [{
+        "fromBookId": "2",
+        "toBookId": "1",
+        "assetId": "btc",
+        "value": "0.2",
+        "memo": "testing transfer API",
+        "metadata": {"customTag": "customValue", "customTag2": "customValue2"}
+    }, true],
+    "id": 1
+}
+
+### getBook
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "getBook",
+    "params": ["1"],
+    "id": 1
+}
+
+### getBalances
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "getBalances",
+    "params": ["1", "btc", {"customTag": "customValue"}],
+    "id": 1
+}
+
+### getOperations
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "getOperations",
+    "params": ["1", {"customTag": "customValue"}],
+    "id": 1
+}
+
+### createBook
+POST {{server}}
+content-type: application/json
+
+{
+    "jsonrpc": "2.0",
+    "method": "createBook",
+    "params": [{
+        "name": "coinswitch_cash",
+        "metadata": {} 
+    }],
+    "id": 1
+}
